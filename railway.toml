@@ -1,6 +1,0 @@
-[build]
-builder = "simple"
-buildCommand = "cd client && npm install && npm run build"
-
-[deploy]
-startCommand = "npx serve client/dist -p $PORT -s"
