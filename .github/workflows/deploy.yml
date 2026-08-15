@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd client
-          npm install --ignore-scripts
+          npm ci --ignore-scripts
 
       - name: Build
         run: |
