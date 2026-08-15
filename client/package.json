@@ -1,0 +1,50 @@
+{
+  "name": "vibeos",
+  "version": "1.0.0",
+  "description": "macOS simulator in the browser",
+  "main": "electron/main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && tsc -p electron/tsconfig.json && electron .\"",
+    "electron:build": "vite build && tsc -p electron/tsconfig.json && electron-builder"
+  },
+  "dependencies": {
+    "@webcontainer/api": "^1.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^10.0.4",
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.0",
+    "wait-on": "^9.1.0"
+  },
+  "build": {
+    "appId": "com.vibeos.app",
+    "productName": "VibeOS",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/main.js"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icons/finder.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

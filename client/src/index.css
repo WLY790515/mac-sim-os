@@ -1,0 +1,93 @@
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* macOS Sequoia / Sonoma Color Tokens */
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-menubar: rgba(255, 255, 255, 0.72);
+  --bg-dock: rgba(255, 255, 255, 0.55);
+  --text-primary: #1d1d1f;
+  --text-secondary: #86868b;
+  --accent-blue: #007aff;
+  --accent-green: #30d158;
+  --accent-red: #ff3b30;
+  --accent-yellow: #ffd60a;
+  --border-light: rgba(0, 0, 0, 0.08);
+  --window-titlebar: #e8e8ed;
+  --window-shadow: 0 24px 80px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.12);
+  --menu-bar-height: 25px;
+  --dock-height: 64px;
+  --dock-icon-size: 44px;
+  --corner-radius: 12px;
+  --corner-radius-lg: 16px;
+  --corner-radius-xl: 20px;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+/* macOS-style scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* Selection */
+::selection { background: rgba(0, 122, 255, 0.3); }
+
+/* Button reset */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+input, textarea {
+  outline: none;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.85); }
+  50% { transform: scale(1.08); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.animate-fade-in { animation: fadeIn 0.2s ease; }
+.animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-bounce-in { animation: bounceIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }

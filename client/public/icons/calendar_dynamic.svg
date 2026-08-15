@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff453a"/>
+      <stop offset="100%" style="stop-color:#cc2a20"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(0,0,0,0.2)"/>
+      <stop offset="100%" style="stop-color:rgba(0,0,0,0)"/>
+    </linearGradient>
+  </defs>
+  <!-- App icon squircle -->
+  <rect x="20" y="20" width="472" height="472" rx="102" ry="102" fill="url(#bg)"/>
+  <!-- Top fade -->
+  <rect x="20" y="20" width="472" height="120" fill="url(#fade)"/>
+  <!-- Ring binders -->
+  <ellipse cx="136" cy="48" rx="22" ry="28" fill="#c7c7cc" stroke="#aeaeb2" stroke-width="2"/>
+  <ellipse cx="136" cy="48" rx="8" ry="12" fill="#ff453a"/>
+  <ellipse cx="376" cy="48" rx="22" ry="28" fill="#c7c7cc" stroke="#aeaeb2" stroke-width="2"/>
+  <ellipse cx="376" cy="48" rx="8" ry="12" fill="#ff453a"/>
+  <!-- Month + Year -->
+  <text x="256" y="78" text-anchor="middle" fill="#ffffff" font-size="28" font-family="-apple-system,sans-serif" font-weight="600">August 2026</text>
+  <!-- Big day -->
+  <text x="256" y="315" text-anchor="middle" fill="#ffffff" font-size="190" font-family="-apple-system,sans-serif" font-weight="200">13</text>
+  <!-- Weekday -->
+  <text x="256" y="375" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="36" font-family="-apple-system,sans-serif" font-weight="400" letter-spacing="4">THURSDAY</text>
+  <!-- Decorative dots -->
+  <circle cx="100" cy="445" r="5" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="130" cy="445" r="5" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="160" cy="445" r="5" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="352" cy="445" r="5" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="382" cy="445" r="5" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="412" cy="445" r="5" fill="rgba(255,255,255,0.25)"/>
+  <!-- Bottom shadow -->
+  <rect x="20" y="430" width="472" height="62" fill="url(#fade)"/>
+</svg>
