@@ -112,7 +112,7 @@ npm run preview
 
 ## 部署到 Railway（在线演示）
 
-Railway 是本项目推荐的部署方案，通过 [railway.toml](./railway.toml) 实现一键构建和静态托管。
+Railway 是本项目推荐的部署方案，通过 [Dockerfile](./Dockerfile) 实现一键构建和静态托管。
 
 ### 第一步：创建 Railway 项目
 
@@ -124,21 +124,29 @@ Railway 是本项目推荐的部署方案，通过 [railway.toml](./railway.toml
 
 ### 第二步：确认配置
 
-Railway 会自动读取项目根目录的 [railway.toml](./railway.toml)：
+Railway 会自动检测到根目录的 [Dockerfile](./Dockerfile)，无需任何额外配置。
 
-```toml
-[build]
-builder = "simple"
-buildCommand = "cd client && npm install && npm run build"
+Dockerfile 内容：
 
-[deploy]
-startCommand = "npx serve client/dist -p $PORT -s"
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY client/package.json client/package-lock.json ./client/
+RUN npm ci --prefix client
+COPY client/ ./client/
+RUN npm run build --prefix client
+
+FROM node:20-alpine
+WORKDIR /app
+RUN npm install -g serve
+COPY --from=builder /app/client/dist ./dist
+EXPOSE $PORT
+CMD ["serve", "dist", "-p", "$PORT", "-s"]
 ```
 
-**无需修改**，该配置会自动：
-- 进入 `client/` 目录安装依赖并构建 Vite 前端
-- 用 `serve` 托管 `client/dist/` 静态文件
-- 监听 Railway 提供的 `$PORT` 环境变量
+自动完成：
+- 构建阶段：安装依赖 → 编译 Vite 前端 → 生成 `client/dist/`
+- 运行阶段：用 `serve` 托管静态文件，监听 `$PORT` 环境变量
 
 ### 第三步：等待部署完成
 
