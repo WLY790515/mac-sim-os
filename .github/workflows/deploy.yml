@@ -24,17 +24,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
 
       - name: Install dependencies
         run: |
           cd client
-          npm ci --ignore-scripts
+          npm install
 
       - name: Build
         run: |
           cd client
-          npm run build
+          npx tsc --noEmit && vite build --base /vibeos/ || { echo "BUILD FAILED"; exit 1; }
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -46,5 +46,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
