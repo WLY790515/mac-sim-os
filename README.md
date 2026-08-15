@@ -195,3 +195,5 @@ node download-icons.js              # 批量下载 PNG 图标
 ## License
 
 MIT
+
+<!-- updated: 2026-08-15 -->
