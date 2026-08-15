@@ -2,15 +2,15 @@
   "name": "vibeos",
   "version": "1.0.0",
   "description": "macOS simulator in the browser",
-  "main": "electron/main.js",
+  "main": "electron-main.js",
   "author": "",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && tsc -p electron/tsconfig.json && electron .\"",
-    "electron:build": "vite build && tsc -p electron/tsconfig.json && electron-builder"
+    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && tsc -p electron-tsconfig.json && electron .\"",
+    "electron:build": "vite build && tsc -p electron-tsconfig.json && electron-builder"
   },
   "dependencies": {
     "@webcontainer/api": "^1.1.0",
@@ -36,7 +36,7 @@
     },
     "files": [
       "dist/**/*",
-      "electron/main.js"
+      "electron-main.js"
     ],
     "win": {
       "target": "nsis",

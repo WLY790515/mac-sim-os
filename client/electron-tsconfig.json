@@ -7,8 +7,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "..",
+    "outDir": ".",
     "rootDir": "."
   },
-  "include": ["main.ts"]
+  "include": ["electron-main.ts"],
+  "exclude": []
 }

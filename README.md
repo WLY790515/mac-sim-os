@@ -11,7 +11,7 @@
 
 ## 预览
 
-[在线演示](https://vibeos-railway.vercel.app)（部署后更新）
+[在线演示](https://wly790515.github.io/vibeos/)（GitHub Pages）
 
 ![VibeOS Screenshot](./screenshot.png)
 
@@ -110,61 +110,36 @@ npm run preview
 
 ---
 
-## 部署到 Railway（在线演示）
+## 部署到 GitHub Pages（推荐，免费）
 
-Railway 是本项目推荐的部署方案，通过 [Dockerfile](./Dockerfile) 实现一键构建和静态托管。
+项目已内置 [GitHub Actions 自动部署](./.github/workflows/deploy.yml)，推送到 master 分支后自动构建并部署。
 
-### 第一步：创建 Railway 项目
+### 第一步：启用 GitHub Pages
+
+1. 打开 [github.com/WLY790515/vibeos/settings/pages](https://github.com/WLY790515/vibeos/settings/pages)
+2. 在 **Source** 下拉菜单选择 **GitHub Actions**
+3. 等待 GitHub Actions 自动触发首次部署（约 1-2 分钟）
+
+### 第二步：确认部署成功
+
+访问 https://wly790515.github.io/vibeos/ 查看在线演示。
+
+> 部署成功后，将此处链接填入 README.md 的"在线演示"处。
+
+---
+
+## 部署到 Railway（备选方案）
+
+Railway 通过 [Dockerfile](./Dockerfile) 实现一键构建和静态托管。
+
+### 操作步骤
 
 1. 打开 [railway.app](https://railway.app)，使用 GitHub 登录
-2. 点击右上角 **New Project**
-3. 选择 **Deploy from GitHub repo**
-4. 授权 Railway 访问 GitHub，搜索并选择本项目仓库
-5. 点击 **Deploy Now**
+2. 点击右上角 **New Project** → **Deploy from GitHub repo**
+3. 搜索并选择 `WLY790515/vibeos`（注意：不是中文名仓库）
+4. Railway 自动检测 Dockerfile 并构建，等待绿色 ✅ 后点击 **View Live**
 
-### 第二步：确认配置
-
-Railway 会自动检测到根目录的 [Dockerfile](./Dockerfile)，无需任何额外配置。
-
-Dockerfile 内容：
-
-```dockerfile
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY client/package.json client/package-lock.json ./
-RUN npm ci
-COPY client/src ./src
-COPY client/public ./public
-COPY client/index.html ./
-COPY client/tsconfig.json ./
-COPY client/tsconfig.node.json ./
-COPY client/vite.config.ts ./
-RUN npm run build
-
-FROM node:20-alpine
-WORKDIR /app
-RUN npm install -g serve
-COPY --from=builder /app/dist ./dist
-EXPOSE $PORT
-CMD ["serve", "dist", "-p", "$PORT", "-s"]
-```
-
-自动完成：
-- 构建阶段：安装依赖 → 编译 Vite 前端 → 生成 `client/dist/`
-- 运行阶段：用 `serve` 托管静态文件，监听 `$PORT` 环境变量
-
-### 第三步：等待部署完成
-
-在项目页面左侧点击 **Deployments**，等待构建完成（首次约 2-3 分钟），出现绿色 ✅ 即为成功。
-
-### 第四步：获取在线地址
-
-点击页面右上角 **View Live**，获得 Railway 分配的域名，例如：
-```
-https://vibeos-xxxx.up.railway.app
-```
-
-将链接填入 README.md 中的"在线演示"处即可。
+获取的地址格式如：`https://vibeos-xxxx.up.railway.app`
 
 ---
 
