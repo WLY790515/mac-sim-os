@@ -8,11 +8,8 @@ COPY client/index.html ./
 COPY client/tsconfig.json ./
 COPY client/tsconfig.node.json ./
 COPY client/vite.config.ts ./
-RUN npm run build
+RUN PATH="/app/client/node_modules/.bin:$PATH" npm run build
 
-FROM node:20-alpine
-WORKDIR /app
-RUN npm install -g serve
-COPY --from=builder /app/client/dist ./dist
-EXPOSE $PORT
-CMD ["serve", "dist", "-p", "$PORT", "-s"]
+FROM caddy:2-alpine
+COPY --from=builder /app/client/dist /srv
+EXPOSE 8080
