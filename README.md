@@ -11,7 +11,7 @@
 
 ## 预览
 
-[在线演示]()（待部署）
+[在线演示](https://vibeos-railway.vercel.app)（部署后更新）
 
 ![VibeOS Screenshot](./screenshot.png)
 
@@ -37,8 +37,8 @@ VibeOS 是一个纯前端实现的类 macOS 桌面操作系统模拟器，采用
 | 前端框架 | React 18 + TypeScript + Vite |
 | 状态管理 | Zustand |
 | 终端引擎 | `@webcontainer/api`（浏览器内 Node.js 运行时） |
-| 后端服务 | Express（虚拟 FS API） |
-| 包管理 | pnpm workspace |
+| 桌面客户端 | Electron（可选） |
+| 包管理 | npm |
 
 ---
 
@@ -46,7 +46,7 @@ VibeOS 是一个纯前端实现的类 macOS 桌面操作系统模拟器，采用
 
 ```
 vibeos/
-├── client/               # React 前端应用
+├── client/               # React 前端应用（Vite + Electron）
 │   ├── src/
 │   │   ├── apps/         # 各应用组件（Terminal, Finder, Clock…）
 │   │   ├── components/   # 桌面、Dock、MenuBar、WindowManager、Spotlight
@@ -54,11 +54,10 @@ vibeos/
 │   │   ├── stores/       # Zustand 状态 store
 │   │   └── types/        # TypeScript 类型定义
 │   ├── public/icons/     # 应用图标资源（PNG / 动态 SVG）
+│   ├── electron/         # Electron 主进程
 │   └── package.json
-├── server/               # Express 后端（虚拟文件系统）
-│   └── src/index.ts
 ├── vibeos-icons/         # 完整图标集（21 个应用图标）
-└── package.json          # 根 workspace
+└── package.json          # 根配置
 ```
 
 ---
@@ -84,41 +83,84 @@ vibeos/
 ### 环境要求
 
 - Node.js ≥ 18
-- pnpm（推荐）
 
 ### 安装依赖
 
 ```bash
-pnpm install
+cd client
+npm install
 ```
 
 ### 启动开发服务器
 
-同时启动客户端（Vite）和服务端（Express）：
-
 ```bash
-pnpm dev
+cd client
+npm run dev
 ```
 
-- 客户端：http://localhost:5173
-- 服务端：http://localhost:4000
+访问 http://localhost:5173
 
-### 单独启动
-
-```bash
-# 仅客户端
-pnpm dev:client
-
-# 仅服务端
-pnpm dev:server
-```
-
-### 生产构建
+### 本地生产预览
 
 ```bash
-pnpm build    # 构建前端
-pnpm start    # 启动服务端（含静态文件托管）
+cd client
+npm run build
+npm run preview
 ```
+
+---
+
+## 部署到 Railway（在线演示）
+
+Railway 是本项目推荐的部署方案，通过 [railway.toml](./railway.toml) 实现一键构建和静态托管。
+
+### 第一步：创建 Railway 项目
+
+1. 打开 [railway.app](https://railway.app)，使用 GitHub 登录
+2. 点击右上角 **New Project**
+3. 选择 **Deploy from GitHub repo**
+4. 授权 Railway 访问 GitHub，搜索并选择本项目仓库
+5. 点击 **Deploy Now**
+
+### 第二步：确认配置
+
+Railway 会自动读取项目根目录的 [railway.toml](./railway.toml)：
+
+```toml
+[build]
+builder = "simple"
+buildCommand = "cd client && npm install && npm run build"
+
+[deploy]
+startCommand = "npx serve client/dist -p $PORT -s"
+```
+
+**无需修改**，该配置会自动：
+- 进入 `client/` 目录安装依赖并构建 Vite 前端
+- 用 `serve` 托管 `client/dist/` 静态文件
+- 监听 Railway 提供的 `$PORT` 环境变量
+
+### 第三步：等待部署完成
+
+在项目页面左侧点击 **Deployments**，等待构建完成（首次约 2-3 分钟），出现绿色 ✅ 即为成功。
+
+### 第四步：获取在线地址
+
+点击页面右上角 **View Live**，获得 Railway 分配的域名，例如：
+```
+https://vibeos-xxxx.up.railway.app
+```
+
+将链接填入 README.md 中的"在线演示"处即可。
+
+---
+
+## 自定义域名（可选）
+
+在 Railway 项目中：
+1. 进入项目 **Settings** → **Domains**
+2. 点击 **Add Domain**，输入你的域名
+3. 按提示配置 DNS（CNAME 指向 Railway 分配的地址）
 
 ---
 
