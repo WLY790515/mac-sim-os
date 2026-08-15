@@ -2,7 +2,6 @@
   "name": "vibeos",
   "version": "1.0.0",
   "description": "macOS simulator in the browser",
-  "main": "electron-main.js",
   "author": "",
   "license": "MIT",
   "scripts": {
