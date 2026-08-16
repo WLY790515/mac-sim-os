@@ -7,6 +7,8 @@ import { AppRegistryProvider } from './contexts/AppRegistry.context'
 import { AppProvider } from './stores/app.store'
 import { FS } from './lib/filesystem'
 
+const WELCOME_KEY = 'macsimos-welcome-dismissed'
+
 interface AppProps {
   apps: AppDefinition[]
 }
@@ -22,7 +24,7 @@ export default function App({ apps }: AppProps) {
     <AppProvider>
       <AppRegistryProvider value={{ apps }}>
         {!bootDone && <BootScreen onComplete={() => setBootDone(true)} />}
-        {bootDone && <Desktop />}
+        {bootDone && <Desktop welcomeKey={WELCOME_KEY} />}
         <KeyboardShortcuts />
         <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden="true">
           <defs>

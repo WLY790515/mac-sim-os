@@ -21,6 +21,7 @@ import WeatherApp from './apps/Weather'
 import MapsApp from './apps/Maps'
 import FaceTimeApp from './apps/FaceTime'
 import VideosApp from './apps/Videos'
+import AboutApp from './apps/About'
 
 // ─── Icon Paths ────────────────────────────────────────────────
 const icon = (name: string) => import.meta.env.BASE_URL + 'icons/' + name + '.png'
@@ -180,5 +181,13 @@ export const apps: AppDefinition[] = [
     defaultSize: { width: 680, height: 460 },
     defaultPosition: { x: 140, y: 90 },
     component: SettingsApp,
+  },
+  {
+    id: 'about',
+    name: 'About This Mac',
+    icon: icon('settings'),
+    defaultSize: { width: 460, height: 520 },
+    defaultPosition: { x: window.innerWidth / 2 - 230, y: window.innerHeight / 2 - 260 },
+    component: AboutApp,
   },
 ]
