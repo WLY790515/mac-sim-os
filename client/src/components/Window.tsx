@@ -19,6 +19,7 @@ interface WindowProps {
   onMaximize: () => void
   onMove: (x: number, y: number) => void
   onResize: (width: number, height: number) => void
+  onSnap?: (side: 'left' | 'right' | 'top' | 'bottom' | 'fullscreen') => void
   appId: string
   component: React.ComponentType<any>
   getDockIconRect?: () => DOMRect | null
@@ -26,7 +27,7 @@ interface WindowProps {
 
 export default function Window({
   window: win, isActive, onFocus, onClose, onMinimize, onMaximize,
-  onMove, onResize, appId, component: AppComponent, getDockIconRect,
+  onMove, onResize, onSnap, appId, component: AppComponent, getDockIconRect,
 }: WindowProps) {
   // ── refs ──────────────────────────────────────────────────────────
   const onMoveRef = useRef(onMove)
@@ -65,7 +66,14 @@ export default function Window({
     function onDocMouseMove(e: MouseEvent) {
       if (dragInfoRef.current.active) {
         const d = dragInfoRef.current
-        onMoveRef.current(d.origX + (e.clientX - d.startX), Math.max(0, d.origY + (e.clientY - d.startY)))
+        let nx = d.origX + (e.clientX - d.startX)
+        let ny = Math.max(0, d.origY + (e.clientY - d.startY))
+        // Edge snap: if dragged near screen edge, trigger snap
+        if (e.clientX < 8) onSnap?.('left')
+        else if (e.clientX > window.innerWidth - 8) onSnap?.('right')
+        else if (ny < 4) onSnap?.('top')
+        else if (ny > window.innerHeight - 96) onSnap?.('bottom')
+        onMoveRef.current(nx, ny)
       }
       if (resizeInfoRef.current.active) {
         const r = resizeInfoRef.current
@@ -85,7 +93,7 @@ export default function Window({
       document.removeEventListener('mousemove', onDocMouseMove)
       document.removeEventListener('mouseup', onDocMouseUp)
     }
-  }, [])
+  }, [onSnap])
 
   // ── animation engine ───────────────────────────────────────────────
   const ANIM_MS = 500
@@ -344,13 +352,14 @@ export default function Window({
     left: dispX, top: dispY,
     width: dispW, height: dispH,
     opacity: dispOpacity,
-    boxShadow: isActive
-      ? '0 24px 80px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.12)'
-      : '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
     zIndex: win.zIndex, overflow: 'hidden',
     display: 'flex', flexDirection: 'column',
-    border: '1px solid rgba(0,0,0,0.08)',
+    border: '1px solid rgba(0,0,0,0.12)',
     pointerEvents: isAnimating ? 'none' : 'auto',
+    // macOS-style multi-layer shadow
+    boxShadow: isActive
+      ? '0 0 0 1px rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.28), 0 8px 20px rgba(0,0,0,0.14)'
+      : '0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)',
   }
 
   // Only hide when minimized AND not animating (minimize animation plays first)

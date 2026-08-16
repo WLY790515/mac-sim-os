@@ -9,7 +9,6 @@ export default function WindowManager() {
   const { apps } = useAppRegistry()
   const { windows, activeWindowId } = state
 
-  // Hooks must be called unconditionally at the top level
   const focusHandler = useCallback((id: string) => () => {
     dispatch({ type: 'FOCUS_WINDOW', id })
   }, [dispatch])
@@ -32,6 +31,10 @@ export default function WindowManager() {
 
   const resizeHandler = useCallback((id: string) => (width: number, height: number) => {
     dispatch({ type: 'UPDATE_WINDOW', id, updates: { width, height } })
+  }, [dispatch])
+
+  const snapHandler = useCallback((id: string) => (side: string) => {
+    dispatch({ type: 'SNAP_WINDOW', id, side })
   }, [dispatch])
 
   const getDockIconRect = useCallback((appId: string) => {
@@ -60,6 +63,7 @@ export default function WindowManager() {
               onMaximize={maximizeHandler(win.id)}
               onMove={moveHandler(win.id)}
               onResize={resizeHandler(win.id)}
+              onSnap={snapHandler(win.id)}
               getDockIconRect={() => getDockIconRect(win.appId)}
             />
           )

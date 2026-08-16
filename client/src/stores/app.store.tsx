@@ -72,6 +72,31 @@ function reducer(state: State, action: Action): State {
       }
     case 'UPDATE_WINDOW':
       return { ...state, windows: state.windows.map((w: WindowState) => w.id === action.id ? { ...w, ...action.updates } : w) }
+    case 'SNAP_WINDOW': {
+      const { id, side } = action
+      const W = window.innerWidth, H = window.innerHeight
+      const SNAP = 10
+      const was = state.windows.find((w: WindowState) => w.id === id)
+      if (!was || was.isMaximized) return state
+      let x = was.x, y = was.y, w = was.width, h = was.height
+      const snap = (threshold: number) => (val: number) => val < threshold
+      switch (side) {
+        case 'left':   x = 0;            w = W / 2; break
+        case 'right':  x = W / 2;        w = W / 2; break
+        case 'top':    y = 25;           h = (H - 25 - 80) / 2; break
+        case 'bottom': y = 25 + (H - 25 - 80) / 2; h = (H - 25 - 80) / 2; break
+        case 'fullscreen':
+          x = 0; y = 25; w = W; h = H - 25 - 80; break
+      }
+      return {
+        ...state,
+        windows: state.windows.map((win: WindowState) =>
+          win.id === id
+            ? { ...win, x, y, width: w, height: h, wasPosition: { x: was.x, y: was.y, width: was.width, height: was.height }, isMaximized: false }
+            : win,
+        ),
+      }
+    }
     case 'SET_FILES': return { ...state, desktopFiles: action.files }
     case 'TOGGLE_THEME': return { ...state, theme: state.theme === 'light' ? 'dark' : 'light' }
     case 'SET_THEME': return { ...state, theme: action.theme }

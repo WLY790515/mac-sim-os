@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import type { AppDefinition } from './types'
 import Desktop from './components/Desktop'
 import BootScreen from './components/BootScreen'
+import KeyboardShortcuts from './components/KeyboardShortcuts'
 import { AppRegistryProvider } from './contexts/AppRegistry.context'
 import { AppProvider } from './stores/app.store'
 
@@ -15,10 +16,9 @@ export default function App({ apps }: AppProps) {
   return (
     <AppProvider>
       <AppRegistryProvider value={{ apps }}>
-        {/* BootScreen uses position:fixed with z-index 99999 — covers everything during boot */}
         {!bootDone && <BootScreen onComplete={() => setBootDone(true)} />}
-        {/* Desktop only becomes interactive after boot completes */}
         <Desktop />
+        <KeyboardShortcuts />
         <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden="true">
           <defs>
             <filter id="clock-shadow" x="-20%" y="-20%" width="140%" height="140%">
