@@ -87,6 +87,7 @@ export default function AboutApp() {
               { label: '在线演示（GitHub Pages）', url: 'https://wly790515.github.io/mac-sim-os/', icon: '🌐' },
               { label: '预览页面', url: 'https://wly790515.github.io/mac-sim-os/preview.html', icon: '👁️' },
               { label: '报告问题 / 功能建议', url: 'https://github.com/WLY790515/mac-sim-os/issues', icon: '🐛' },
+              { label: 'QQ 频道', url: 'https://pd.qq.com/s/fk41xxrg8?b=9', icon: '💬' },
             ].map(link => (
               <a key={link.url} href={link.url} target="_blank" rel="noreferrer"
                 style={{

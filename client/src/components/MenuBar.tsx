@@ -296,6 +296,8 @@ function getMenuItems(menu: string, apps: Array<{id:string;name:string;icon:stri
         { label: 'mac-sim-os 帮助', action: () => setHelpOpen(true) },
         { type: 'divider' as const },
         { label: '键盘快捷键', shortcut: '⌘?', action: () => setHelpOpen(true) },
+        { type: 'divider' as const },
+        { label: '加入 QQ 频道', url: 'https://pd.qq.com/s/fk41xxrg8?b=9' as any, action: () => window.open('https://pd.qq.com/s/fk41xxrg8?b=9', '_blank') },
       ]
     default: return []
   }
