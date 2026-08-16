@@ -12,18 +12,7 @@
 
 ## 在线预览
 
-<div align="center">
-  <iframe
-    src="https://wly790515.github.io/vibeos/"
-    style="width:100%;height:500px;border:1px solid #d1d1d6;border-radius:12px"
-    title="VibeOS Live Preview"
-    allowfullscreen
-  ></iframe>
-</div>
-
 👉 **[前往在线体验](https://wly790515.github.io/vibeos/)** · 支持窗口拖拽、Dock 动画、Spotlight 搜索等完整交互
-
-> 如果内嵌 iframe 不可用，请点击上方链接访问。
 
 ---
 
