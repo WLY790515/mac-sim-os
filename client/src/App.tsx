@@ -15,14 +15,14 @@ export default function App({ apps }: AppProps) {
   const [bootDone, setBootDone] = useState(false)
 
   useEffect(() => {
-    FS.init().catch(console.error)
+    FS.init().then(() => setBootDone(true)).catch(() => setBootDone(true))
   }, [])
 
   return (
     <AppProvider>
       <AppRegistryProvider value={{ apps }}>
         {!bootDone && <BootScreen onComplete={() => setBootDone(true)} />}
-        <Desktop />
+        {bootDone && <Desktop />}
         <KeyboardShortcuts />
         <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden="true">
           <defs>

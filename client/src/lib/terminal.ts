@@ -1,13 +1,6 @@
-import { FS, type FsItem } from '../lib/filesystem'
+import { FS, type FsItem } from './filesystem'
 
 const DEFAULT_PATH = '/Users/mac-sim-os'
-
-interface TermState {
-  cwd: string
-  history: string[]
-  historyIndex: number
-  lines: TermLine[]
-}
 
 export interface TermLine {
   id: number
@@ -21,7 +14,6 @@ function resolvePath(cwd: string, input: string): string {
   if (!path) return cwd
   if (path.startsWith('~')) path = DEFAULT_PATH + path.slice(1)
   if (!path.startsWith('/')) path = cwd + '/' + path
-  // Normalize
   const parts = path.split('/').filter(Boolean)
   const resolved: string[] = []
   for (const p of parts) {
@@ -43,6 +35,12 @@ async function getNodeByPath(path: string): Promise<FsItem | undefined> {
     currentId = found.id
   }
   return FS.get(currentId)
+}
+
+function ensureRootSync(): void {
+  // Try to trigger init if it hasn't completed yet by calling init again
+  // This is a no-op if already initialized
+  FS.init().catch(() => {})
 }
 
 export class TerminalFS {
@@ -85,12 +83,15 @@ export class TerminalFS {
 
   static async mkdir(name: string): Promise<string[]> {
     if (!name) return ['mkdir: missing operand']
-    const parts = name.split('/')
-    const finalName = parts[parts.length - 1]
-    const parentPath = parts.slice(0, -1).join('/') || '/'
-    const parentNode = await getNodeByPath(parentPath)
-    if (!parentNode) return [`mkdir: ${parentPath}: No such file or directory`]
-    if (parentNode.kind !== 'folder') return [`mkdir: ${parentPath}: Not a directory`]
+    // Extract only the final component (basename)
+    const lastSlash = name.lastIndexOf('/')
+    const finalName = lastSlash >= 0 ? name.slice(lastSlash + 1) : name
+    const parentRelative = lastSlash >= 0 ? name.slice(0, lastSlash) : ''
+    const parentNode = parentRelative
+      ? await getNodeByPath(resolvePath(DEFAULT_PATH, parentRelative))
+      : await getNodeByPath(DEFAULT_PATH)
+    if (!parentNode) return [`mkdir: ${parentRelative || DEFAULT_PATH}: No such file or directory`]
+    if (parentNode.kind !== 'folder') return [`mkdir: ${parentRelative || DEFAULT_PATH}: Not a directory`]
     const existing = await FS.getChildren(parentNode.id)
     if (existing.find(c => c.name === finalName)) return [`mkdir: ${finalName}: File exists`]
     await FS.addFolder(parentNode.id, finalName)
@@ -99,12 +100,14 @@ export class TerminalFS {
 
   static async touch(name: string): Promise<string[]> {
     if (!name) return ['touch: missing operand']
-    const parts = name.split('/')
-    const finalName = parts[parts.length - 1]
-    const parentPath = parts.slice(0, -1).join('/') || '/'
-    const parentNode = await getNodeByPath(parentPath)
-    if (!parentNode) return [`touch: ${parentPath}: No such file or directory`]
-    if (parentNode.kind !== 'folder') return [`touch: ${parentPath}: Not a directory`]
+    const lastSlash = name.lastIndexOf('/')
+    const finalName = lastSlash >= 0 ? name.slice(lastSlash + 1) : name
+    const parentRelative = lastSlash >= 0 ? name.slice(0, lastSlash) : ''
+    const parentNode = parentRelative
+      ? await getNodeByPath(resolvePath(DEFAULT_PATH, parentRelative))
+      : await getNodeByPath(DEFAULT_PATH)
+    if (!parentNode) return [`touch: ${parentRelative || DEFAULT_PATH}: No such file or directory`]
+    if (parentNode.kind !== 'folder') return [`touch: ${parentRelative || DEFAULT_PATH}: Not a directory`]
     const existing = await FS.getChildren(parentNode.id)
     const found = existing.find(c => c.name === finalName)
     if (found && found.kind === 'folder') return [`touch: ${finalName}: Is a directory`]
@@ -119,10 +122,6 @@ export class TerminalFS {
     const node = await getNodeByPath(target)
     if (!node) return [`rm: ${target}: No such file or directory`]
     if (node.kind === 'folder' && !recursive) return [`rm: ${target}: Is a directory (use -r)`]
-    if (node.kind === 'folder' && recursive) {
-      await FS.remove(node.id)
-      return []
-    }
     await FS.remove(node.id)
     return []
   }
@@ -141,9 +140,7 @@ export class TerminalFS {
     if (srcNode.kind === 'folder') {
       const newFolder = await FS.addFolder(dstParent.id, finalName)
       const srcChildren = await FS.getChildren(srcNode.id)
-      for (const child of srcChildren) {
-        await this._copyItem(child.id, newFolder.id)
-      }
+      for (const child of srcChildren) await this._copyItem(child.id, newFolder.id)
       return []
     }
     const content = await FS.readFile(srcNode.id)
@@ -231,7 +228,7 @@ export class TerminalFS {
     if (!node || node.kind !== 'folder') return
     const children = await FS.getChildren(node.id)
     for (const child of children) {
-      const childPath = cwd + '/' + child.name
+      const childPath = cwd === '/' ? '/' + child.name : cwd + '/' + child.name
       if (!filter || child.name.toLowerCase().includes(filter.toLowerCase())) {
         results.push(childPath)
       }
@@ -262,7 +259,7 @@ export class TerminalFS {
     return lines
   }
 
-  static async _treeBuild(folderId: string, prefix: string, lines: string[], depth: number): Promise<void> {
+  static async _treeBuild(folderId: string, prefix: string, lines: string[], _depth: number): Promise<void> {
     const children = await FS.getChildren(folderId)
     const sorted = children.sort((a, b) => {
       if (a.kind !== b.kind) return a.kind === 'folder' ? -1 : 1
@@ -275,7 +272,7 @@ export class TerminalFS {
       lines.push(prefix + connector + (child.kind === 'folder' ? '📁 ' : '📄 ') + child.name)
       if (child.kind === 'folder') {
         const newPrefix = prefix + (isLast ? '    ' : '│   ')
-        await this._treeBuild(child.id, newPrefix, lines, depth + 1)
+        await this._treeBuild(child.id, newPrefix, lines, _depth + 1)
       }
     }
   }
@@ -291,18 +288,18 @@ export class TerminalFS {
 
   static async neofetch(): Promise<string[]> {
     return [
-      "        ████████        mac-sim-os",
-      "      ██          ██      OS: mac-sim-os 1.0.0 (browser)",
-      "    ██    ████    ██      Host: WebContainer",
-      "   ██   ██░░░░██   ██      Kernel: React 18 / TypeScript 5",
-      "  ██   ██░░░░░░██   ██     Uptime: just now",
-      "  ██   ██░░░░░░██   ██     Shell: bash 5.1",
-      "   ██   ██░░░░██   ██      Resolution: " + window.innerWidth + "x" + window.innerHeight,
-      "    ██    ████    ██      Theme: macOS Dark",
-      "      ██          ██      Terminal: mac-sim-os Terminal",
-      "        ████████        CPU: Browser V8 Engine",
-      "                         Memory: ∞ GB",
-      "",
+      '        ████████        mac-sim-os',
+      '      ██          ██      OS: mac-sim-os 1.0.0 (browser)',
+      '    ██    ████    ██      Host: WebContainer',
+      '   ██   ██░░░░██   ██      Kernel: React 18 / TypeScript 5',
+      '  ██   ██░░░░░░██   ██     Uptime: just now',
+      '  ██   ██░░░░░░██   ██     Shell: bash 5.1',
+      '   ██   ██░░░░██   ██      Resolution: ' + window.innerWidth + 'x' + window.innerHeight,
+      '    ██    ████    ██      Theme: macOS Dark',
+      '      ██          ██      Terminal: mac-sim-os Terminal',
+      '        ████████        CPU: Browser V8 Engine',
+      '                         Memory: ∞ GB',
+      '',
     ]
   }
 
@@ -345,9 +342,9 @@ export async function executeCommand(input: string, cwd: string): Promise<{ outp
     case 'cat':
       return { output: await TerminalFS.cat(args[0]) }
     case 'mkdir':
-      return { output: await TerminalFS.mkdir(args.join(' ')) }
+      return { output: await TerminalFS.mkdir(args[0] ?? '') }
     case 'touch':
-      return { output: await TerminalFS.touch(args.join(' ')) }
+      return { output: await TerminalFS.touch(args[0] ?? '') }
     case 'rm':
       return { output: await TerminalFS.rm(args.join(' '), args.includes('-r') || args.includes('-rf')) }
     case 'cp':
