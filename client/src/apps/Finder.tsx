@@ -31,7 +31,7 @@ const FS_TREE: FsNode[] = [
   {
     name: 'Downloads', type: 'folder', modified: 'Aug 13, 2026',
     children: [
-      { name: 'vibeos-setup.dmg', type: 'file', size: '100 MB', modified: 'Aug 13, 2026' },
+      { name: 'mac-sim-os-setup.dmg', type: 'file', size: '100 MB', modified: 'Aug 13, 2026' },
       { name: 'photo.jpg', type: 'file', size: '3.4 MB', modified: 'Aug 12, 2026' },
     ],
   },
@@ -42,7 +42,7 @@ const FS_TREE: FsNode[] = [
         { name: 'package.json', type: 'file', size: '0.5 KB', modified: 'Aug 13, 2026' },
         { name: 'src', type: 'folder', modified: 'Aug 13, 2026' },
       ]},
-      { name: 'vibeos-server', type: 'folder', modified: 'Aug 13, 2026', children: [
+      { name: 'mac-sim-os-server', type: 'folder', modified: 'Aug 13, 2026', children: [
         { name: 'index.ts', type: 'file', size: '2.1 KB', modified: 'Aug 13, 2026' },
       ]},
     ],
@@ -111,7 +111,7 @@ export default function FinderApp() {
   const breadcrumb = path.map((p, i) => (
     <span key={i} style={{ cursor: i < path.length - 1 ? 'pointer' : 'default', opacity: i < path.length - 1 ? 0.6 : 1 }}
       onClick={() => i < path.length - 1 && setPath(path.slice(0, i + 1))}>
-      {p === '/' ? 'VibeOS' : p}
+      {p === '/' ? 'mac-sim-os' : p}
       {i < path.length - 1 && <span style={{ margin: '0 4px', opacity: 0.4 }}> / </span>}
     </span>
   ))
@@ -137,7 +137,7 @@ export default function FinderApp() {
           ))}
           <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', padding: '10px 12px 6px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Locations</div>
           <div style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span>💻</span> VibeOS (Local)
+            <span>💻</span> mac-sim-os (Local)
           </div>
           <div style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: 0.6 }}>
             <span>☁️</span> iCloud Drive

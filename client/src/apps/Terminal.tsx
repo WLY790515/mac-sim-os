@@ -67,13 +67,13 @@ export default function TerminalApp() {
       }
 
       if (cmd.trim() === 'whoami') {
-        setProcesses(prev => prev.map(p => p.id === id ? { ...p, output: ['vibeos'] } : p))
+        setProcesses(prev => prev.map(p => p.id === id ? { ...p, output: ['mac-sim-os'] } : p))
         setCurrentCmd('')
         return
       }
 
       if (cmd.trim() === 'pwd') {
-        setProcesses(prev => prev.map(p => p.id === id ? { ...p, output: ['/Users/vibeos'] } : p))
+        setProcesses(prev => prev.map(p => p.id === id ? { ...p, output: ['/Users/mac-sim-os'] } : p))
         setCurrentCmd('')
         return
       }
@@ -200,7 +200,7 @@ export default function TerminalApp() {
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', paddingTop: 44, paddingBottom: 8 }}>
-        <div style={{ marginBottom: 8, opacity: 0.6, fontSize: 12 }}>Welcome to VibeOS Terminal (WebContainer)</div>
+        <div style={{ marginBottom: 8, opacity: 0.6, fontSize: 12 }}>Welcome to mac-sim-os Terminal (WebContainer)</div>
         {processes.map(proc => (
           <div key={proc.id} style={{ marginBottom: 4 }}>
             <div style={{ color: '#7ee787', marginBottom: 2 }}>{proc.command}</div>

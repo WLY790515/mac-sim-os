@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 
-const DEFAULT_CODE = `// Welcome to VibeOS Editor
+const DEFAULT_CODE = `// Welcome to mac-sim-os Editor
 // Start typing your code here...
 
 function hello() {
-  console.log("Hello, VibeOS!")
+  console.log("Hello, mac-sim-os!")
   return 42
 }
 

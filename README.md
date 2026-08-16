@@ -1,4 +1,4 @@
-# VibeOS
+# mac-sim-os
 
 > 在浏览器中运行的 macOS 风格操作系统模拟器
 
@@ -15,7 +15,7 @@
 ## 在线预览
 
 <div align="center">
-  <img src="assets/desktop_final.png" alt="VibeOS Desktop" width="800" />
+  <img src="assets/desktop_final.png" alt="mac-sim-os Desktop" width="800" />
 </div>
 
 👉 **[点击体验完整交互式预览](https://wly790515.github.io/vibeos/preview.html)** · [返回仓库主页](https://github.com/WLY790515/vibeos)

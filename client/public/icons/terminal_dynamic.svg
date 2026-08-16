@@ -20,7 +20,7 @@
   <!-- Prompt text -->
   <text x="60" y="120" fill="#28c840" font-size="28" font-family="Menlo, Monaco, Courier New, monospace" font-weight="400">
     <tspan fill="#ffffff">$ </tspan>
-    <tspan fill="#0a84ff">vibeos</tspan>
+    <tspan fill="#0a84ff">mac-sim-os</tspan>
     <tspan fill="#ffffff"> ~ </tspan>
     <tspan fill="#ffffff">~</tspan>
   </text>
@@ -30,7 +30,7 @@
   </rect>
   <!-- Command output lines -->
   <text x="60" y="165" fill="#8e8e93" font-size="24" font-family="Menlo, Monaco, Courier New, monospace">
-    <tspan fill="#5ac8fa">VibeOS</tspan>
+    <tspan fill="#5ac8fa">mac-sim-os</tspan>
     <tspan fill="#ffffff"> Simulator v1.0</tspan>
   </text>
   <text x="60" y="205" fill="#8e8e93" font-size="24" font-family="Menlo, Monaco, Courier New, monospace">

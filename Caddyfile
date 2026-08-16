@@ -1,6 +1,15 @@
-:80 {
-    root * /srv
-    file_server
-    encode gzip
-    try_files {path} /index.html
+:8080 {
+    route /vibeos* {
+        uri strip_prefix /vibeos
+        root * /srv
+        file_server
+        encode gzip
+        try_files {path} /index.html
+    }
+    route * {
+        root * /srv
+        file_server
+        encode gzip
+        try_files {path} /index.html
+    }
 }

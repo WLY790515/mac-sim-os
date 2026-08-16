@@ -12,9 +12,9 @@ interface Note {
 const COLORS = ['#ffd60a', '#ff9f0a', '#30d158', '#007aff', '#bf5af2', '#ff375f', '#65CEED', '#ffffff']
 
 const INITIAL_NOTES: Note[] = [
-  { id: '1', title: 'Welcome to VibeOS', content: 'This is your first note.\n\nYou can edit it or create new ones!', createdAt: new Date(), updatedAt: new Date(), color: '#ffd60a' },
+  { id: '1', title: 'Welcome to mac-sim-os', content: 'This is your first note.\n\nYou can edit it or create new ones!', createdAt: new Date(), updatedAt: new Date(), color: '#ffd60a' },
   { id: '2', title: 'Shopping List', content: '- Milk\n- Eggs\n- Bread\n- Coffee', createdAt: new Date(), updatedAt: new Date(), color: '#65CEED' },
-  { id: '3', title: 'Ideas', content: 'Build a cool app with VibeOS\nTry the Terminal with WebContainers', createdAt: new Date(), updatedAt: new Date(), color: '#30d158' },
+  { id: '3', title: 'Ideas', content: 'Build a cool app with mac-sim-os\nTry the Terminal with WebContainers', createdAt: new Date(), updatedAt: new Date(), color: '#30d158' },
 ]
 
 export default function NotesApp() {

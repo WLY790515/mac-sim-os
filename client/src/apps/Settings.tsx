@@ -105,7 +105,7 @@ export default function SettingsApp() {
               <span style={{ fontSize: 20 }}>📶</span>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 500 }}>Wi-Fi</div>
-                <div style={{ fontSize: 12, color: '#86868b' }}>{settings.wifi ? 'VibeOS-Network · Connected' : 'Wi-Fi is off'}</div>
+                <div style={{ fontSize: 12, color: '#86868b' }}>{settings.wifi ? 'mac-sim-os-Network · Connected' : 'Wi-Fi is off'}</div>
               </div>
             </div>
             <div onClick={() => toggle('wifi')} style={{ width: 44, height: 24, borderRadius: 12, background: settings.wifi ? '#30d158' : '#e5e5ea', position: 'relative', cursor: 'pointer' }}>
@@ -150,7 +150,7 @@ export default function SettingsApp() {
 
         {/* Info */}
         <div style={{ marginTop: 16, padding: '12px 16px', background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', fontSize: 12, color: '#86868b' }}>
-          <div style={{ fontWeight: 600, color: '#1d1d1f', marginBottom: 4 }}>VibeOS 1.0.0 (Simulator)</div>
+          <div style={{ fontWeight: 600, color: '#1d1d1f', marginBottom: 4 }}>mac-sim-os 1.0.0 (Simulator)</div>
           <div>macOS Sequoia Design Language · React + TypeScript</div>
           <div>WebContainer Terminal · Virtual Filesystem</div>
         </div>
