@@ -18,7 +18,7 @@
   <img src="assets/desktop_final.png" alt="mac-sim-os Desktop" width="800" />
 </div>
 
-👉 **[点击体验完整交互式预览](https://wly790515.github.io/vibeos/preview.html)** · [返回仓库主页](https://github.com/WLY790515/vibeos)
+👉 **[点击体验完整交互式预览](https://wly790515.github.io/mac-sim-os/preview.html)** · [返回仓库主页](https://github.com/WLY790515/mac-sim-os)
 
 ---
 
