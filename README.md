@@ -12,7 +12,19 @@
 
 ## 在线预览
 
-👉 **[前往在线体验](https://wly790515.github.io/vibeos/)** · 支持窗口拖拽、Dock 动画、Spotlight 搜索等完整交互
+<div align="center">
+  <a href="https://wly790515.github.io/vibeos/preview.html" target="_blank" rel="noopener">
+    <img
+      src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E9%A2%84%E8%A7%88-Click%20to%20try%20live%20demo!-6366f1?style=for-the-badge&logo=vercel&logoColor=white"
+      alt="Try Live Demo"
+      style="max-width:100%;border-radius:8px"
+    >
+  </a>
+</div>
+
+👉 **[点击体验完整交互式预览](https://wly790515.github.io/vibeos/preview.html)** · [返回仓库主页](https://github.com/WLY790515/vibeos)
+
+> 预览页以全屏方式加载应用，无 README 干扰，可直接操作窗口动画、Dock、Spotlight 等所有功能。
 
 ---
 
