@@ -2,6 +2,7 @@ import React, { useCallback } from 'react'
 import Window from './Window'
 import { useApp } from '../stores/app.store'
 import { useAppRegistry } from '../contexts/AppRegistry.context'
+import { iconRectsRef } from './iconRefs'
 
 export default function WindowManager() {
   const { state, dispatch } = useApp()
@@ -33,6 +34,10 @@ export default function WindowManager() {
     dispatch({ type: 'UPDATE_WINDOW', id, updates: { width, height } })
   }, [dispatch])
 
+  const getDockIconRect = useCallback((appId: string) => {
+    return iconRectsRef.current.get(appId) ?? null
+  }, [])
+
   if (windows.length === 0) return null
 
   return (
@@ -56,6 +61,7 @@ export default function WindowManager() {
               onMaximize={maximizeHandler(win.id)}
               onMove={moveHandler(win.id)}
               onResize={resizeHandler(win.id)}
+              getDockIconRect={() => getDockIconRect(win.appId)}
             />
           )
         })}

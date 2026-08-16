@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useApp } from '../stores/app.store'
 import { useAppRegistry } from '../contexts/AppRegistry.context'
 import type { AppDefinition, WindowState } from '../types'
+import { iconRectsRef } from './iconRefs'
 
 interface DockProps {
   apps: AppDefinition[]
@@ -29,10 +30,12 @@ export default function Dock({ apps }: DockProps) {
     const container = containerRef.current
     if (!container) return centers
     const containerRect = container.getBoundingClientRect()
+    iconRectsRef.current.clear()
     apps.forEach((app) => {
       const el = iconRefs.current.get(app.id)
       if (el) {
         const r = el.getBoundingClientRect()
+        iconRectsRef.current.set(app.id, r)
         centers.push(r.left + r.width / 2 - containerRect.left)
       } else {
         centers.push(-1)
@@ -41,6 +44,7 @@ export default function Dock({ apps }: DockProps) {
     const trashEl = iconRefs.current.get('trash')
     if (trashEl) {
       const tr = trashEl.getBoundingClientRect()
+      iconRectsRef.current.set('trash', tr)
       centers.push(tr.left + tr.width / 2 - containerRect.left)
     } else {
       centers.push(-1)
@@ -177,7 +181,7 @@ export default function Dock({ apps }: DockProps) {
       })}
       <div style={{ width: 1, height: DOCK_HEIGHT - 20, background: 'rgba(0,0,0,0.2)', margin: '0 6px 6px', borderRadius: 1, flexShrink: 0 }} />
       <div
-        ref={(el) => { if (el) iconRefs.current.set('trash', el) }}
+        ref={(el) => { if (el) iconRectsRef.current.set('trash', el.getBoundingClientRect()) }}
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, cursor: 'pointer' }}
         onClick={handleTrashClick}
       >
