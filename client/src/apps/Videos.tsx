@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 
 const movies = [
-  { id: 1, title: 'The Last Frontier', year: 2026, duration: '2h 15m', rating: 'PG-13', genre: 'Action', poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&q=80' },
-  { id: 2, title: 'Ocean Deep', year: 2025, duration: '1h 58m', rating: 'PG', genre: 'Documentary', poster: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&q=80' },
-  { id: 3, title: 'Mountain Echo', year: 2026, duration: '2h 32m', rating: 'R', genre: 'Drama', poster: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80' },
-  { id: 4, title: 'Digital Dreams', year: 2025, duration: '1h 45m', rating: 'PG-13', genre: 'Sci-Fi', poster: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&q=80' },
-  { id: 5, title: 'Golden Hour', year: 2026, duration: '2h 05m', rating: 'PG', genre: 'Romance', poster: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&q=80' },
-  { id: 6, title: 'Night City', year: 2025, duration: '1h 52m', rating: 'R', genre: 'Thriller', poster: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=300&q=80' },
+  { id: 1, title: 'The Last Frontier', year: 2026, duration: '2h 15m', rating: 'PG-13', genre: 'Action', poster: 'https://picsum.photos/seed/apple-movies1/300/450' },
+  { id: 2, title: 'Ocean Deep', year: 2025, duration: '1h 58m', rating: 'PG', genre: 'Documentary', poster: 'https://picsum.photos/seed/apple-movies2/300/450' },
+  { id: 3, title: 'Mountain Echo', year: 2026, duration: '2h 32m', rating: 'R', genre: 'Drama', poster: 'https://picsum.photos/seed/apple-movies3/300/450' },
+  { id: 4, title: 'Digital Dreams', year: 2025, duration: '1h 45m', rating: 'PG-13', genre: 'Sci-Fi', poster: 'https://picsum.photos/seed/apple-movies4/300/450' },
+  { id: 5, title: 'Golden Hour', year: 2026, duration: '2h 05m', rating: 'PG', genre: 'Romance', poster: 'https://picsum.photos/seed/apple-movies5/300/450' },
+  { id: 6, title: 'Night City', year: 2025, duration: '1h 52m', rating: 'R', genre: 'Thriller', poster: 'https://picsum.photos/seed/apple-movies6/300/450' },
 ]
 
 export default function VideosApp() {

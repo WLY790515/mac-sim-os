@@ -1,18 +1,18 @@
 import React, { useState } from 'react'
 
 const photos = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80', title: 'Mountains', date: 'Aug 10, 2026', album: 'Travel' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&q=80', title: 'Forest Path', date: 'Aug 8, 2026', album: 'Nature' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80', title: 'Sunlight', date: 'Aug 5, 2026', album: 'Nature' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80', title: 'Beach', date: 'Jul 28, 2026', album: 'Travel' },
-  { id: 5, src: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&q=80', title: 'Night Sky', date: 'Jul 20, 2026', album: 'Astrophotography' },
-  { id: 6, src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&q=80', title: 'Lake', date: 'Jul 15, 2026', album: 'Travel' },
-  { id: 7, src: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=400&q=80', title: 'Waterfall', date: 'Jul 10, 2026', album: 'Nature' },
-  { id: 8, src: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400&q=80', title: 'Meadow', date: 'Jul 5, 2026', album: 'Nature' },
-  { id: 9, src: 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=400&q=80', title: 'Northern Lights', date: 'Jun 28, 2026', album: 'Astrophotography' },
-  { id: 10, src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80', title: 'Sunbeam', date: 'Jun 20, 2026', album: 'Nature' },
-  { id: 11, src: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400&q=80', title: 'Woodland', date: 'Jun 15, 2026', album: 'Travel' },
-  { id: 12, src: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&q=80', title: 'Misty Valley', date: 'Jun 10, 2026', album: 'Nature' },
+  { id: 1, src: 'https://picsum.photos/seed/apple-photos1/400/400', title: 'Mountains', date: 'Aug 10, 2026', album: 'Travel' },
+  { id: 2, src: 'https://picsum.photos/seed/apple-photos2/400/400', title: 'Forest Path', date: 'Aug 8, 2026', album: 'Nature' },
+  { id: 3, src: 'https://picsum.photos/seed/apple-photos3/400/400', title: 'Sunlight', date: 'Aug 5, 2026', album: 'Nature' },
+  { id: 4, src: 'https://picsum.photos/seed/apple-photos4/400/400', title: 'Beach', date: 'Jul 28, 2026', album: 'Travel' },
+  { id: 5, src: 'https://picsum.photos/seed/apple-photos5/400/400', title: 'Night Sky', date: 'Jul 20, 2026', album: 'Astrophotography' },
+  { id: 6, src: 'https://picsum.photos/seed/apple-photos6/400/400', title: 'Lake', date: 'Jul 15, 2026', album: 'Travel' },
+  { id: 7, src: 'https://picsum.photos/seed/apple-photos7/400/400', title: 'Waterfall', date: 'Jul 10, 2026', album: 'Nature' },
+  { id: 8, src: 'https://picsum.photos/seed/apple-photos8/400/400', title: 'Meadow', date: 'Jul 5, 2026', album: 'Nature' },
+  { id: 9, src: 'https://picsum.photos/seed/apple-photos9/400/400', title: 'Northern Lights', date: 'Jun 28, 2026', album: 'Astrophotography' },
+  { id: 10, src: 'https://picsum.photos/seed/apple-photos10/400/400', title: 'Sunbeam', date: 'Jun 20, 2026', album: 'Nature' },
+  { id: 11, src: 'https://picsum.photos/seed/apple-photos11/400/400', title: 'Woodland', date: 'Jun 15, 2026', album: 'Travel' },
+  { id: 12, src: 'https://picsum.photos/seed/apple-photos12/400/400', title: 'Misty Valley', date: 'Jun 10, 2026', album: 'Nature' },
 ]
 
 const albums = ['All Photos', 'Travel', 'Nature', 'Astrophotography', 'Favorites', 'Screenshots']
