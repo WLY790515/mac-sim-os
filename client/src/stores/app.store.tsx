@@ -12,6 +12,7 @@ interface State {
   desktopFiles: DesktopFile[]
   theme: ThemeMode
   menuBarActiveApp: string | null
+  wallpaper: string
 }
 
 let zCounter = 100
@@ -79,7 +80,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-const initState: State = { windows: [], activeWindowId: null, desktopFiles: [], theme: 'light', menuBarActiveApp: null }
+const initState: State = { windows: [], activeWindowId: null, desktopFiles: [], theme: 'light', menuBarActiveApp: null, wallpaper: 'aurora' }
 
 const AppContext = createContext<{ state: State; dispatch: React.Dispatch<Action> }>({ state: initState, dispatch: () => {} })
 
