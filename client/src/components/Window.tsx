@@ -1,12 +1,13 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react'
+import React, { useRef, useCallback, useLayoutEffect, useEffect, useState } from 'react'
 import type { WindowState } from '../types'
 
 interface AnimationState {
   fromX: number; fromY: number; fromW: number; fromH: number
   toX: number; toY: number; toW: number; toH: number
   elapsed: number
-  isMinimizing: boolean   // true = sucking into dock, false = exploding from dock
-  isMaximizing: boolean   // true = expanding to fill screen
+  isMinimizing: boolean
+  isMaximizing: boolean
+  isClosing: boolean
 }
 
 interface WindowProps {
@@ -27,6 +28,7 @@ export default function Window({
   window: win, isActive, onFocus, onClose, onMinimize, onMaximize,
   onMove, onResize, appId, component: AppComponent, getDockIconRect,
 }: WindowProps) {
+  // ── refs ──────────────────────────────────────────────────────────
   const onMoveRef = useRef(onMove)
   const onResizeRef = useRef(onResize)
   const onFocusRef = useRef(onFocus)
@@ -37,15 +39,28 @@ export default function Window({
   const dragInfoRef = useRef({ active: false, startX: 0, startY: 0, origX: 0, origY: 0 })
   const resizeInfoRef = useRef({ active: false, startX: 0, startY: 0, origW: 0, origH: 0 })
 
-  useEffect(() => { onMoveRef.current = onMove }, [onMove])
-  useEffect(() => { onResizeRef.current = onResize }, [onResize])
-  useEffect(() => { onFocusRef.current = onFocus }, [onFocus])
-  useEffect(() => { onCloseRef.current = onClose }, [onClose])
-  useEffect(() => { onMinimizeRef.current = onMinimize }, [onMinimize])
-  useEffect(() => { onMaximizeRef.current = onMaximize }, [onMaximize])
-  useEffect(() => { getDockIconRectRef.current = getDockIconRect }, [getDockIconRect])
+  // Track state transitions
+  const prevIsMinimizedRef = useRef(false)
+  const prevIsMaximizedRef = useRef(false)
+  // Prevent same animation from re-triggering on consecutive renders
+  const lastAnimTypeRef = useRef<string | null>(null)
+  // Close animation is triggered manually via ref (not from Redux state)
+  const closeRef = useRef<(() => void) | null>(null)
 
-  // Single drag/resize handler
+  useLayoutEffect(() => { onMoveRef.current = onMove }, [onMove])
+  useLayoutEffect(() => { onResizeRef.current = onResize }, [onResize])
+  useLayoutEffect(() => { onFocusRef.current = onFocus }, [onFocus])
+  useLayoutEffect(() => { onCloseRef.current = onClose }, [onClose])
+  useLayoutEffect(() => { onMinimizeRef.current = onMinimize }, [onMinimize])
+  useLayoutEffect(() => { onMaximizeRef.current = onMaximize }, [onMaximize])
+  useLayoutEffect(() => { getDockIconRectRef.current = getDockIconRect }, [getDockIconRect])
+
+  // Track previous state transitions
+  useLayoutEffect(() => {
+    prevIsMinimizedRef.current = win.isMinimized
+    prevIsMaximizedRef.current = win.isMaximized
+  }, [win.isMinimized, win.isMaximized])
+
   useEffect(() => {
     function onDocMouseMove(e: MouseEvent) {
       if (dragInfoRef.current.active) {
@@ -72,20 +87,30 @@ export default function Window({
     }
   }, [])
 
-  // ── Black hole animation engine ───────────────────────────────────
-  const ANIM_MS = 420
+  // ── animation engine ───────────────────────────────────────────────
+  const ANIM_MS = 500
+  // macOS uses easeOutCubic for open/maximize, easeInCubic for minimize
+  const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3)
+  const easeInCubic = (t: number): number => t * t * t
+
   const animRef = useRef<AnimationState | null>(null)
   const rafRef = useRef<number>(0)
-  const renderRef = useRef({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
-  const [renderPos, setRenderPos] = useState({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
 
-  const finishAnim = useCallback(() => {
+  const renderRef = useRef({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
+  const [renderPos, setRenderPos] = useState(() => ({
+    x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1,
+  }))
+
+  const finishAnim = useCallback((a: AnimationState) => {
     cancelAnimationFrame(rafRef.current)
-    const a = animRef.current
     animRef.current = null
+    lastAnimTypeRef.current = null
     const r = renderRef.current
     if (a?.isMinimizing) {
       r.opacity = 0
+    } else if (a?.isClosing) {
+      r.opacity = 0
+      onCloseRef.current()
     } else {
       onMoveRef.current(r.x, r.y)
       onResizeRef.current(r.w, r.h)
@@ -94,52 +119,26 @@ export default function Window({
     setRenderPos({ ...r })
   }, [])
 
-  // Spring-like "black hole" easing:
-  // - Opening/Expanding (out): easeOutBack — explosive start, slight overshoot then settle
-  // - Closing/Sucking (in): easeInBack — accelerates into the vortex
-  // Formula: easeOutBack(t) = 1 + 2.70158*(t-1)^3 + 1.70158*(t-1)^2
-  //          easeInBack(t)  = t^3 - 1.70158*t^2 + 0.70158*t^3
-  const easeOutBack = (t: number): number => {
-    const c1 = 1.70158
-    const c3 = c1 + 1
-    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2)
-  }
-
-  const easeInBack = (t: number): number => {
-    const c1 = 1.70158
-    const c3 = c1 + 1
-    return c3 * t * t * t - c1 * t * t
-  }
-
   const tick = useCallback(() => {
     const a = animRef.current
     if (!a) return
     const now = performance.now()
     const rawT = Math.min(1, (now - a.elapsed) / ANIM_MS)
 
-    // Choose easing based on animation direction
-    // OUT (opening/maximizing): explosive burst from origin
-    // IN (minimizing/restoring): gravitational suction toward target
-    const easedT = a.isMinimizing ? easeInBack(rawT) : easeOutBack(rawT)
+    const easedT = a.isMinimizing ? easeInCubic(rawT) : easeOutCubic(rawT)
 
-    // Scale factor: 0→1 for open, 1→0 for minimize
-    const scale = a.isMinimizing
-      ? 1 - easedT
-      : easedT
-
-    // Position interpolation
     const cur = {
       x: a.fromX + (a.toX - a.fromX) * easedT,
       y: a.fromY + (a.toY - a.fromY) * easedT,
-      w: a.fromW + (a.toW - a.fromW) * scale,
-      h: a.fromH + (a.toH - a.fromH) * scale,
-      opacity: a.isMinimizing ? (1 - easedT * easedT) : 1,
+      w: a.fromW + (a.toW - a.fromW) * easedT,
+      h: a.fromH + (a.toH - a.fromH) * easedT,
+      opacity: 1,
     }
     renderRef.current = cur
     setRenderPos(cur)
 
     if (rawT >= 1) {
-      finishAnim()
+      finishAnim(a)
     } else {
       rafRef.current = requestAnimationFrame(tick)
     }
@@ -151,58 +150,121 @@ export default function Window({
     rafRef.current = requestAnimationFrame(tick)
   }, [tick])
 
-  // ── Trigger animations ─────────────────────────────────────────────
-  useEffect(() => {
-    if (animRef.current || win.isMinimized) return
+  // ── Close animation (triggered by red button, not Redux state) ─────
+  useLayoutEffect(() => {
+    closeRef.current = () => {
+      if (animRef.current || win.isMinimized) return
+      const cx = win.x + win.width / 2
+      const cy = win.y + win.height / 2
+      const a: AnimationState = {
+        fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
+        toX: cx - 1, toY: cy - 1, toW: 2, toH: 2,
+        elapsed: performance.now(),
+        isMinimizing: false,
+        isMaximizing: false,
+        isClosing: true,
+      }
+      renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
+      setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.width, opacity: 1 })
+      startAnim(a)
+    }
+  }, [win.x, win.y, win.width, win.height, startAnim])
+
+  // ── Open animation ─────────────────────────────────────────────────
+  useLayoutEffect(() => {
+    if (animRef.current) return
+    if (win.isMinimized) return
+    const animKey = `open:${win.id}`
+    if (lastAnimTypeRef.current === animKey) return
+    lastAnimTypeRef.current = animKey
+
     const rect = getDockIconRectRef.current?.()
+    // Start from dock bar (bottom of screen), centered on icon, height=0
     const dockX = rect ? rect.left + rect.width / 2 - win.width / 2 : win.x
-    const dockY = rect ? rect.top + rect.height / 2 - win.height / 2 : win.y
-    startAnim({
+    const dockY = window.innerHeight - 80 - win.height
+    const a: AnimationState = {
       fromX: dockX, fromY: dockY, fromW: 0, fromH: 0,
       toX: win.x, toY: win.y, toW: win.width, toH: win.height,
       elapsed: performance.now(),
       isMinimizing: false,
       isMaximizing: false,
-    })
+      isClosing: false,
+    }
+    renderRef.current = { x: dockX, y: dockY, w: 0, h: 0, opacity: 1 }
+    setRenderPos({ x: dockX, y: dockY, w: 0, h: 0, opacity: 1 })
+    startAnim(a)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [win.id])
+  }, [win.id, win.isMinimized])
 
-  useEffect(() => {
+  // ── Minimize animation ─────────────────────────────────────────────
+  useLayoutEffect(() => {
     if (animRef.current || !win.isMinimized) return
+    const animKey = `min:${win.id}`
+    if (lastAnimTypeRef.current === animKey) return
+    lastAnimTypeRef.current = animKey
+
     const rect = getDockIconRectRef.current?.()
+    // Target: dock icon size, bottom aligned with dock bar top
     const targetX = rect ? rect.left : win.x
-    const targetY = rect ? rect.top + rect.height : win.y
+    const targetY = rect ? rect.top : win.y
     const targetW = rect ? Math.max(rect.width, 44) : 44
-    const targetH = rect ? Math.max(rect.height, 10) : 10
-    startAnim({
+    const targetH = rect ? Math.max(rect.height, 50) : 50
+    const a: AnimationState = {
       fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
       toX: targetX, toY: targetY, toW: targetW, toH: targetH,
       elapsed: performance.now(),
       isMinimizing: true,
       isMaximizing: false,
-    })
+      isClosing: false,
+    }
+    renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
+    setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
+    startAnim(a)
   }, [win.isMinimized])
 
-  useEffect(() => {
+  // ── Maximize animation ─────────────────────────────────────────────
+  useLayoutEffect(() => {
     if (animRef.current) return
-    if (win.isMaximized) {
-      startAnim({
-        fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
-        toX: 0, toY: 25, toW: window.innerWidth, toH: window.innerHeight - 25 - 80,
-        elapsed: performance.now(),
-        isMinimizing: false,
-        isMaximizing: true,
-      })
-    } else if (win.wasPosition) {
-      startAnim({
-        fromX: 0, fromY: 25, fromW: window.innerWidth, fromH: window.innerHeight - 25 - 80,
-        toX: win.wasPosition.x, toY: win.wasPosition.y,
-        toW: win.wasPosition.width, toH: win.wasPosition.height,
-        elapsed: performance.now(),
-        isMinimizing: true,
-        isMaximizing: false,
-      })
+    if (!win.isMaximized) return
+    if (!prevIsMaximizedRef.current) return
+    const animKey = `max:${win.id}`
+    if (lastAnimTypeRef.current === animKey) return
+    lastAnimTypeRef.current = animKey
+
+    const a: AnimationState = {
+      fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
+      toX: 0, toY: 25, toW: window.innerWidth, toH: window.innerHeight - 25 - 80,
+      elapsed: performance.now(),
+      isMinimizing: false,
+      isMaximizing: true,
+      isClosing: false,
     }
+    renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
+    setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
+    startAnim(a)
+  }, [win.isMaximized])
+
+  // ── Restore from maximized ─────────────────────────────────────────
+  useLayoutEffect(() => {
+    if (animRef.current) return
+    if (win.isMaximized) return
+    if (!prevIsMaximizedRef.current) return
+    const animKey = `restore:${win.id}`
+    if (lastAnimTypeRef.current === animKey) return
+    lastAnimTypeRef.current = animKey
+
+    const a: AnimationState = {
+      fromX: 0, fromY: 25, fromW: window.innerWidth, fromH: window.innerHeight - 25 - 80,
+      toX: win.wasPosition?.x ?? win.x, toY: win.wasPosition?.y ?? win.y,
+      toW: win.wasPosition?.width ?? win.width, toH: win.wasPosition?.height ?? win.height,
+      elapsed: performance.now(),
+      isMinimizing: false,
+      isMaximizing: false,
+      isClosing: false,
+    }
+    renderRef.current = { x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 }
+    setRenderPos({ x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 })
+    startAnim(a)
   }, [win.isMaximized, win.wasPosition])
 
   const handleTitleBarMouseDown = useCallback((e: React.MouseEvent) => {
@@ -230,7 +292,7 @@ export default function Window({
   const maxBg = '#28c840', maxActive = '#1fa832'
 
   function TrafficLights() {
-    const [pressed, setPressed] = React.useState<string | null>(null)
+    const [pressed, setPressed] = useState<string | null>(null)
     const btnStyle = (bg: string, active: string): React.CSSProperties => ({
       width: 12, height: 12, borderRadius: '50%',
       background: pressed ? active : bg,
@@ -244,7 +306,7 @@ export default function Window({
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
         <button
           style={btnStyle(closeBg, closeActive)}
-          onMouseDown={e => { e.stopPropagation(); setPressed('c'); onCloseRef.current() }}
+          onMouseDown={e => { e.stopPropagation(); setPressed('c'); closeRef.current?.() }}
           onMouseUp={() => setPressed(null)} onMouseLeave={() => setPressed(null)}
         />
         <button
@@ -291,6 +353,8 @@ export default function Window({
     pointerEvents: isAnimating ? 'none' : 'auto',
   }
 
+  // Only hide when minimized AND not animating (minimize animation plays first)
+  // Only render maximized layout when not animating
   if (win.isMinimized && !isAnimating) return null
 
   if (win.isMaximized && !isAnimating) {

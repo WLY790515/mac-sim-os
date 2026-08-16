@@ -168,14 +168,6 @@ export default function Dock({ apps }: DockProps) {
                 }}
               />
             </button>
-            {isActive && (
-              <div style={{
-                width: 4, height: 4, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.9)',
-                marginTop: 3,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-              }} />
-            )}
           </div>
         )
       })}

@@ -43,14 +43,13 @@ export default function WindowManager() {
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
       {windows
-        .filter(w => !w.isMinimized)
         .sort((a, b) => a.zIndex - b.zIndex)
         .map(win => {
           const app = apps.find(a => a.id === win.appId)
           if (!app) return null
           return (
             <Window
-              key={win.id}
+              key={win.appId}
               window={win}
               isActive={win.id === activeWindowId}
               appId={win.appId}
