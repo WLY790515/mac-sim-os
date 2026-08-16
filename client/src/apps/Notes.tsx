@@ -1,124 +1,146 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { useData } from '../lib/datastore'
+import { FS, getFileIcon } from '../lib/filesystem'
 
 interface Note {
   id: string
   title: string
   content: string
-  createdAt: Date
-  updatedAt: Date
   color: string
+  createdAt: number
+  updatedAt: number
 }
 
-const COLORS = ['#ffd60a', '#ff9f0a', '#30d158', '#007aff', '#bf5af2', '#ff375f', '#65CEED', '#ffffff']
-
-const INITIAL_NOTES: Note[] = [
-  { id: '1', title: 'Welcome to mac-sim-os', content: 'This is your first note.\n\nYou can edit it or create new ones!', createdAt: new Date(), updatedAt: new Date(), color: '#ffd60a' },
-  { id: '2', title: 'Shopping List', content: '- Milk\n- Eggs\n- Bread\n- Coffee', createdAt: new Date(), updatedAt: new Date(), color: '#65CEED' },
-  { id: '3', title: 'Ideas', content: 'Build a cool app with mac-sim-os\nTry the Terminal with WebContainers', createdAt: new Date(), updatedAt: new Date(), color: '#30d158' },
-]
+const COLORS = ['#ffffff', '#fff3b0', '#b0f2b0', '#b0d4f2', '#f2b0f2', '#ffe4b0', '#ffb0b0', '#e0e0e0']
 
 export default function NotesApp() {
-  const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES)
-  const [selectedId, setSelectedId] = useState<string | null>('1')
-  const [search, setSearch] = useState('')
+  const ds = useData<Note>('notes')
+  const [notes, setNotes] = useState<Note[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    ds.load().then(() => setNotes(ds.current))
+  }, [])
 
   const selected = notes.find(n => n.id === selectedId)
 
-  const filtered = search.length > 0
-    ? notes.filter(n => n.title.toLowerCase().includes(search.toLowerCase()) || n.content.toLowerCase().includes(search.toLowerCase()))
-    : notes
-
-  const createNote = () => {
-    const id = `note-${Date.now()}`
-    const newNote: Note = { id, title: 'New Note', content: '', createdAt: new Date(), updatedAt: new Date(), color: COLORS[Math.floor(Math.random() * COLORS.length)] }
-    setNotes(prev => [newNote, ...prev])
-    setSelectedId(id)
+  const createNote = (color = COLORS[0]) => {
+    const note: Note = {
+      id: Date.now().toString(),
+      title: '',
+      content: '',
+      color,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+    ds.add(note)
+    setNotes(ds.current)
+    setSelectedId(note.id)
+    setEditing(true)
   }
 
-  const updateNote = (id: string, updates: Partial<Note>) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates, updatedAt: new Date() } : n))
+  const updateNote = (patch: Partial<Note>) => {
+    if (!selected) return
+    ds.update(selected.id, { ...patch, updatedAt: Date.now() })
+    setNotes(ds.current)
   }
 
   const deleteNote = (id: string) => {
-    setNotes(prev => prev.filter(n => n.id !== id))
+    ds.del(id)
+    setNotes(ds.current)
     if (selectedId === id) setSelectedId(null)
   }
 
+  const handleContentKeydown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      const ta = e.currentTarget as HTMLTextAreaElement
+      const start = ta.selectionStart
+      const end = ta.selectionEnd
+      const val = ta.value
+      ta.value = val.substring(0, start) + '  ' + val.substring(end)
+      ta.selectionStart = ta.selectionEnd = start + 2
+      updateNote({ content: ta.value })
+    }
+  }
+
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', background: '#f5f5f7' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', background: '#f5f5f7', overflow: 'hidden', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
       {/* Sidebar */}
-      <div style={{
-        width: 220, background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(12px)',
-        borderRight: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column',
-      }}>
-        {/* Search */}
-        <div style={{ padding: '8px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.06)', borderRadius: 8, padding: '4px 8px' }}>
-            <span style={{ fontSize: 12, opacity: 0.5 }}>🔍</span>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search" style={{ flex: 1, fontSize: 12, color: '#1d1d1f', background: 'transparent' }} />
-          </div>
+      <div style={{ width: 220, background: 'rgba(0,0,0,0.03)', borderRight: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '14px 14px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#1d1d1f' }}>Notes</span>
+          <button onClick={() => createNote()} style={{
+            width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(0,0,0,0.15)',
+            background: '#fff', cursor: 'pointer', fontSize: 16, color: '#007aff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>+</button>
         </div>
-        {/* New button */}
-        <div style={{ padding: '4px 10px 8px' }}>
-          <button onClick={createNote} style={{
-            width: '100%', padding: '6px 0', borderRadius: 8, fontSize: 12, fontWeight: 500,
-            background: '#007aff', color: '#fff', border: 'none', cursor: 'pointer',
-          }}>+ New Note</button>
-        </div>
-        {/* Note list */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          {filtered.map(note => (
-            <div key={note.id} onClick={() => setSelectedId(note.id)}
+        <div style={{ flex: 1, overflow: 'auto', padding: '4px 8px' }}>
+          {notes.length === 0 && (
+            <div style={{ textAlign: 'center', padding: 32, color: '#86868b', fontSize: 12 }}>
+              No notes yet.<br />Click + to create one.
+            </div>
+          )}
+          {notes.map(note => (
+            <div key={note.id} onClick={() => { setSelectedId(note.id); setEditing(false) }}
               style={{
-                padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid rgba(0,0,0,0.05)',
+                padding: '8px 10px', borderRadius: 8, marginBottom: 2, cursor: 'pointer',
                 background: selectedId === note.id ? 'rgba(0,122,255,0.1)' : 'transparent',
-                borderRadius: selectedId === note.id ? 6 : 0, margin: '0 4px',
+                borderLeft: selectedId === note.id ? '3px solid #007aff' : '3px solid transparent',
               }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: note.color, flexShrink: 0, border: '1px solid rgba(0,0,0,0.1)' }} />
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#1d1d1f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{note.title || 'Untitled'}</span>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {note.title || 'Untitled'}
               </div>
               <div style={{ fontSize: 11, color: '#86868b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {note.content.split('\n')[0] || 'No content'}
+                {note.content.replace(/\n/g, ' ').slice(0, 40)}
               </div>
             </div>
           ))}
         </div>
+        <div style={{ padding: '8px 14px', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11, color: '#86868b' }}>
+          {notes.length} note{notes.length !== 1 ? 's' : ''}
+        </div>
       </div>
 
       {/* Editor */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {selected ? (
           <>
-            {/* Color picker */}
-            <div style={{ display: 'flex', gap: 4, padding: '8px 12px', borderBottom: '1px solid rgba(0,0,0,0.06)', alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#86868b', marginRight: 4 }}>Color:</span>
-              {COLORS.map(c => (
-                <button key={c} onClick={() => updateNote(selected.id, { color: c })} style={{
-                  width: 18, height: 18, borderRadius: '50%', background: c,
-                  border: selected.color === c ? '2px solid #007aff' : '1px solid rgba(0,0,0,0.15)',
-                  cursor: 'pointer', padding: 0,
-                }} />
-              ))}
-              <button onClick={() => deleteNote(selected.id)} style={{ marginLeft: 'auto', fontSize: 11, color: '#ff3b30', background: 'transparent', border: 'none', cursor: 'pointer' }}>Delete</button>
+            <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)' }}>
+              <input value={selected.title} onChange={e => updateNote({ title: e.target.value })} placeholder="Title"
+                onFocus={() => setEditing(true)}
+                style={{ flex: 1, fontSize: 15, fontWeight: 600, border: 'none', background: 'transparent', outline: 'none', color: '#1d1d1f' }} />
+              <select value={selected.color} onChange={e => updateNote({ color: e.target.value })}
+                style={{ width: 28, height: 28, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 6, cursor: 'pointer', background: selected.color, fontSize: 10, padding: 2 }} />
+              <button onClick={() => deleteNote(selected.id)}
+                style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#ff3b30', cursor: 'pointer', fontSize: 12 }}>Delete</button>
             </div>
-            {/* Title */}
-            <input value={selected.title} onChange={e => updateNote(selected.id, { title: e.target.value })}
-              style={{ padding: '10px 16px 6px', fontSize: 18, fontWeight: 600, color: '#1d1d1f', borderBottom: '1px solid rgba(0,0,0,0.06)', width: '100%' }}
-            />
-            {/* Content */}
-            <textarea value={selected.content} onChange={e => updateNote(selected.id, { content: e.target.value })}
-              style={{ flex: 1, padding: '12px 16px', fontSize: 14, color: '#333', resize: 'none', lineHeight: 1.6, fontFamily: '-apple-system, sans-serif' }}
-            />
-            <div style={{ height: 20, background: 'rgba(0,0,0,0.03)', borderTop: '1px solid rgba(0,0,0,0.06)', padding: '0 16px', display: 'flex', alignItems: 'center', fontSize: 11, color: '#86868b' }}>
-              {selected.content.length} characters
-            </div>
+            <textarea ref={contentRef} value={selected.content}
+              onChange={e => updateNote({ content: e.target.value })} onKeyDown={handleContentKeydown}
+              placeholder="Start typing..."
+              style={{
+                flex: 1, padding: 16, border: 'none', outline: 'none', resize: 'none',
+                fontSize: 14, lineHeight: 1.7, fontFamily: 'inherit', color: '#1d1d1f',
+                background: selected.color === '#ffffff' ? '#fff' : selected.color,
+              }} />
           </>
         ) : (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#86868b' }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📝</div>
-            <div style={{ fontSize: 15, marginBottom: 4 }}>No Note Selected</div>
-            <div style={{ fontSize: 13, opacity: 0.6 }}>Select a note or create a new one</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📝</div>
+            <div style={{ fontSize: 16, fontWeight: 500, color: '#1d1d1f', marginBottom: 8 }}>No note selected</div>
+            <div style={{ fontSize: 13, marginBottom: 24 }}>Select a note or create a new one</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {COLORS.slice(0, 4).map(c => (
+                <button key={c} onClick={() => createNote(c)} style={{
+                  width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)',
+                  background: c, cursor: 'pointer', fontSize: 18,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>+</button>
+              ))}
+            </div>
           </div>
         )}
       </div>

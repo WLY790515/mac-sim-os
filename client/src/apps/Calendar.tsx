@@ -1,135 +1,214 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { useData } from '../lib/datastore'
 
-const NOW = new Date()
+interface CalendarEvent {
+  id: string
+  title: string
+  date: string // YYYY-MM-DD
+  time?: string
+  color: string
+  description?: string
+}
+
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa']
-const TODAY = NOW.getDate()
-const CURRENT_MONTH = NOW.getMonth()
-const CURRENT_YEAR = NOW.getFullYear()
-const FIRST_DAY = new Date(CURRENT_YEAR, CURRENT_MONTH, 1).getDay()
-const DAYS_IN_MONTH = new Date(CURRENT_YEAR, CURRENT_MONTH + 1, 0).getDate()
-const PREV_MONTH_DAYS = new Date(CURRENT_YEAR, CURRENT_MONTH, 0).getDate()
-
-const events = [
-  { day: 3, title: 'Team Sync', color: '#007aff' },
-  { day: 7, title: 'Lunch w/ Sarah', color: '#34c759' },
-  { day: 12, title: 'Project Deadline', color: '#ff3b30' },
-  { day: 15, title: 'Dentist Appt', color: '#af52de' },
-  { day: 20, title: 'Birthday Party', color: '#ff9500' },
-  { day: 25, title: 'Tax Due', color: '#ff3b30' },
-]
+const EVENT_COLORS = ['#007aff','#34c759','#ff9500','#ff3b30','#af52de','#5856d6','#ff2d55','#00c7be']
 
 export default function CalendarApp() {
-  const [selectedDay, setSelectedDay] = useState<number | null>(TODAY)
-  const [view, setView] = useState<'month' | 'year'>('month')
+  const ds = useData<CalendarEvent>('calendar-events')
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [showAdd, setShowAdd] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newTime, setNewTime] = useState('')
+  const [newColor, setNewColor] = useState(EVENT_COLORS[0])
+  const [newDesc, setNewDesc] = useState('')
+  const overlayRef = useRef<HTMLDivElement>(null)
 
-  const getEventsForDay = (day: number) => events.filter(e => e.day === day)
+  useEffect(() => {
+    ds.load().then(() => setEvents(ds.current))
+  }, [])
 
-  const days = []
-  for (let i = 0; i < FIRST_DAY; i++) {
-    days.push({ day: PREV_MONTH_DAYS - FIRST_DAY + i + 1, month: 'prev', key: `prev-${i}` })
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+  const todayStr = new Date().toISOString().slice(0, 10)
+
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
+  const goToday = () => setCurrentDate(new Date())
+
+  const getEventsForDate = (dateStr: string) => events.filter(e => e.date === dateStr)
+
+  const handleAddEvent = () => {
+    if (!newTitle.trim() || !selectedDate) return
+    const ev: CalendarEvent = {
+      id: Date.now().toString(),
+      title: newTitle.trim(),
+      date: selectedDate,
+      time: newTime || undefined,
+      color: newColor,
+      description: newDesc.trim() || undefined,
+    }
+    ds.add(ev)
+    setEvents(ds.current)
+    setNewTitle('')
+    setNewTime('')
+    setNewDesc('')
+    setShowAdd(false)
   }
-  for (let d = 1; d <= DAYS_IN_MONTH; d++) {
-    days.push({ day: d, month: 'current', key: `curr-${d}` })
+
+  const deleteEvent = (id: string) => {
+    ds.del(id)
+    setEvents(ds.current)
   }
-  const remaining = (7 - ((FIRST_DAY + DAYS_IN_MONTH) % 7)) % 7
-  for (let i = 1; i <= remaining; i++) {
-    days.push({ day: i, month: 'next', key: `next-${i}` })
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (overlayRef.current && overlayRef.current === e.target) setShowAdd(false)
   }
+
+  const calendarCells = []
+  for (let i = 0; i < firstDay; i++) calendarCells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) calendarCells.push(d)
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#f5f5f7', overflow: 'hidden', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-      {/* Header */}
-      <div style={{ padding: '16px 20px 12px', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1d1d1f' }}>
-              {MONTHS[CURRENT_MONTH]} {CURRENT_YEAR}
-            </div>
-            <div style={{ fontSize: 12, color: '#86868b', marginTop: 2 }}>
-              {DAYS[new Date().getDay()]}, {MONTHS[new Date().getMonth()]} {new Date().getDate()}
-            </div>
-          </div>
+    <div style={{ width: '100%', height: '100%', display: 'flex', background: '#f5f5f7', overflow: 'hidden', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+      {/* Main calendar */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 16, background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(12px)' }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f', minWidth: 180 }}>{MONTHS[month]} {year}</div>
           <div style={{ display: 'flex', gap: 4 }}>
-            <button onClick={() => setView('month')} style={{ padding: '4px 12px', borderRadius: 8, fontSize: 12, background: view === 'month' ? 'rgba(0,122,255,0.15)' : 'transparent', color: view === 'month' ? '#007aff' : '#666', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Month</button>
-            <button onClick={() => setView('year')} style={{ padding: '4px 12px', borderRadius: 8, fontSize: 12, background: view === 'year' ? 'rgba(0,122,255,0.15)' : 'transparent', color: view === 'year' ? '#007aff' : '#666', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Year</button>
+            <button onClick={prevMonth} style={btnStyle}>◀</button>
+            <button onClick={goToday} style={btnStyle}>Today</button>
+            <button onClick={nextMonth} style={btnStyle}>▶</button>
           </div>
         </div>
-      </div>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Calendar Grid */}
-        <div style={{ flex: 1, padding: '12px 16px', overflow: 'auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
-            {DAYS.map(d => (
-              <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#86868b', padding: '4px 0', textTransform: 'uppercase' }}>{d}</div>
-            ))}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
-            {days.map(({ day, month, key }) => {
-              const isToday = month === 'current' && day === TODAY
-              const isSelected = isToday || (month === 'current' && day === selectedDay)
-              const dayEvents = month === 'current' ? getEventsForDay(day) : []
-              return (
-                <div
-                  key={key}
-                  onClick={() => month === 'current' && setSelectedDay(day)}
-                  style={{
-                    minHeight: 44, padding: '4px 6px', borderRadius: 8, cursor: month === 'current' ? 'pointer' : 'default',
-                    background: isToday ? 'rgba(0,122,255,0.12)' : isSelected ? 'rgba(0,122,255,0.08)' : 'transparent',
-                    border: isToday ? '1.5px solid #007aff' : '1.5px solid transparent',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <span style={{
-                    fontSize: 13, fontWeight: isToday ? 700 : 400,
-                    color: month === 'current' ? (isToday ? '#007aff' : '#1d1d1f') : '#ccc',
-                  }}>{day}</span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 2 }}>
-                    {dayEvents.slice(0, 2).map((ev, i) => (
-                      <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: ev.color }} />
-                    ))}
+        {/* Weekday headers */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          {DAYS.map(d => (
+            <div key={d} style={{ padding: '8px 0', textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#86868b', textTransform: 'uppercase' }}>{d}</div>
+          ))}
+        </div>
+
+        {/* Calendar grid */}
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', overflow: 'auto' }}>
+          {calendarCells.map((day, i) => {
+            if (!day) return <div key={`empty-${i}`} style={{ minHeight: 100, borderBottom: '1px solid rgba(0,0,0,0.04)', borderRight: '1px solid rgba(0,0,0,0.04)' }} />
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+            const dayEvents = getEventsForDate(dateStr)
+            const isToday = dateStr === todayStr
+            return (
+              <div key={dateStr} onClick={() => { setSelectedDate(dateStr); setShowAdd(true) }}
+                style={{
+                  minHeight: 100, padding: 6, borderBottom: '1px solid rgba(0,0,0,0.04)', borderRight: '1px solid rgba(0,0,0,0.04)',
+                  cursor: 'pointer', background: isToday ? 'rgba(0,122,255,0.04)' : 'transparent',
+                  transition: 'background 0.1s',
+                }}>
+                <div style={{
+                  width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: isToday ? 700 : 400, color: isToday ? '#007aff' : '#1d1d1f',
+                  background: isToday ? 'rgba(0,122,255,0.1)' : 'transparent',
+                }}>{day}</div>
+                {dayEvents.slice(0, 3).map(ev => (
+                  <div key={ev.id} onClick={e => { e.stopPropagation(); deleteEvent(ev.id) }}
+                    style={{
+                      fontSize: 10, padding: '2px 5px', borderRadius: 4, marginTop: 2,
+                      background: ev.color + '22', color: ev.color, borderLeft: `2px solid ${ev.color}`,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer',
+                    }}>
+                    {ev.time && <span style={{ fontWeight: 600 }}>{ev.time}</span>} {ev.title}
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Events sidebar */}
-        <div style={{ width: 200, background: 'rgba(255,255,255,0.6)', borderLeft: '1px solid rgba(0,0,0,0.08)', padding: '12px', overflow: 'auto' }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#86868b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            {MONTHS[CURRENT_MONTH]} {selectedDay ?? TODAY}
-          </div>
-          {(() => {
-            const dayEvents = selectedDay ? getEventsForDay(selectedDay) : []
-            if (dayEvents.length === 0 && selectedDay === TODAY) {
-              return <div style={{ fontSize: 12, color: '#86868b', padding: '8px 0' }}>No events today</div>
-            }
-            return dayEvents.map((ev, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: i < dayEvents.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
-                <div style={{ width: 3, height: 32, borderRadius: 2, background: ev.color, flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#1d1d1f' }}>{ev.title}</div>
-                  <div style={{ fontSize: 11, color: '#86868b' }}>All day</div>
-                </div>
+                ))}
+                {dayEvents.length > 3 && (
+                  <div style={{ fontSize: 10, color: '#86868b', marginTop: 2 }}>+{dayEvents.length - 3} more</div>
+                )}
               </div>
-            ))
-          })()}
-          <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Upcoming</div>
-            {events.filter(e => e.day > TODAY).slice(0, 5).map((ev, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
-                <div style={{ width: 3, height: 24, borderRadius: 2, background: ev.color, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: '#1d1d1f' }}>{ev.title}</div>
-                  <div style={{ fontSize: 11, color: '#86868b' }}>{MONTHS[CURRENT_MONTH].slice(0, 3)} {ev.day}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+            )
+          })}
         </div>
       </div>
+
+      {/* Event panel (right sidebar) */}
+      <div style={{ width: 260, background: '#fff', borderLeft: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#1d1d1f' }}>
+            {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select a date'}
+          </div>
+        </div>
+        <div style={{ flex: 1, overflow: 'auto', padding: 8 }}>
+          {selectedDate && getEventsForDate(selectedDate).map(ev => (
+            <div key={ev.id} style={{
+              padding: 10, borderRadius: 10, marginBottom: 6, background: ev.color + '18', borderLeft: `3px solid ${ev.color}`, cursor: 'pointer',
+            }} onClick={() => deleteEvent(ev.id)}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f' }}>{ev.title}</div>
+              {ev.time && <div style={{ fontSize: 11, color: '#86868b', marginTop: 2 }}>🕐 {ev.time}</div>}
+              {ev.description && <div style={{ fontSize: 11, color: '#6e6e73', marginTop: 4 }}>{ev.description}</div>}
+              <div style={{ fontSize: 10, color: ev.color, marginTop: 4 }}>Click to delete</div>
+            </div>
+          ))}
+          {!selectedDate && (
+            <div style={{ textAlign: 'center', padding: 32, color: '#86868b', fontSize: 12 }}>Click a date to view events</div>
+          )}
+          {selectedDate && getEventsForDate(selectedDate).length === 0 && (
+            <div style={{ textAlign: 'center', padding: 24, color: '#86868b', fontSize: 12 }}>No events<br /><button onClick={() => setShowAdd(true)} style={{ color: '#007aff', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, marginTop: 8 }}>+ Add event</button></div>
+          )}
+        </div>
+        {selectedDate && (
+          <div style={{ padding: 10, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+            <button onClick={() => setShowAdd(true)} style={{
+              width: '100%', padding: '8px 0', borderRadius: 10, border: 'none',
+              background: '#007aff', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}>+ Add Event</button>
+          </div>
+        )}
+      </div>
+
+      {/* Add event modal */}
+      {showAdd && selectedDate && (
+        <div ref={overlayRef} onClick={handleOverlayClick} style={{
+          position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: 24, width: 340,
+            boxShadow: '0 24px 80px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', marginBottom: 16 }}>New Event</div>
+            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Event title" autoFocus
+              style={inputStyle} />
+            <input value={newTime} onChange={e => setNewTime(e.target.value)} type="time" placeholder="Time"
+              style={{ ...inputStyle, marginTop: 8 }} />
+            <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Description (optional)" rows={2}
+              style={{ ...inputStyle, marginTop: 8, resize: 'none' }} />
+            <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+              {EVENT_COLORS.map(c => (
+                <div key={c} onClick={() => setNewColor(c)} style={{
+                  width: 24, height: 24, borderRadius: '50%', background: c, cursor: 'pointer',
+                  border: newColor === c ? '3px solid #1d1d1f' : '2px solid transparent',
+                }} />
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: '#86868b', marginTop: 6 }}>Selected: {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button onClick={() => setShowAdd(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+              <button onClick={handleAddEvent} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+const btnStyle: React.CSSProperties = {
+  padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', fontSize: 12,
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', fontSize: 14, outline: 'none', boxSizing: 'border-box',
 }

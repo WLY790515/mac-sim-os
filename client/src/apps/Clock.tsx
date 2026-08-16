@@ -1,192 +1,293 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 
-interface ClockFaceProps {
-  size: number
-  isDark?: boolean
-  time: Date
-}
-
-function AnalogClock({ size, isDark, time }: ClockFaceProps) {
-  const hours = time.getHours() % 12
-  const minutes = time.getMinutes()
-  const seconds = time.getSeconds()
-  const ms = time.getMilliseconds()
-
-  const secAngle = (seconds + ms / 1000) * 6
-  const minAngle = (minutes + seconds / 60) * 6
-  const hourAngle = (hours + minutes / 60) * 30
-
-  const cx = size / 2, cy = size / 2, r = size / 2 - 8
-  const color = isDark ? '#e5e5ea' : '#1d1d1f'
-  const accent = '#ff3b30'
-
-  const tickMark = (i: number) => {
-    const angle = (i * 30 - 90) * (Math.PI / 180)
-    const isHour = i % 3 === 0
-    const len = isHour ? 12 : 5
-    const thick = isHour ? 2.5 : 1
-    return {
-      x1: cx + (r - len) * Math.cos(angle),
-      y1: cy + (r - len) * Math.sin(angle),
-      x2: cx + r * Math.cos(angle),
-      y2: cy + r * Math.sin(angle),
-      thick,
-    }
-  }
-
-  const numberPos = (n: number) => {
-    const angle = (n * 30 - 90) * (Math.PI / 180)
-    const nr = r - 28
-    return { x: cx + nr * Math.cos(angle), y: cy + nr * Math.sin(angle) }
-  }
-
-  const handEnd = (angle: number, lenRatio: number) => {
-    const rad = (angle - 90) * Math.PI / 180
-    return { ex: cx + r * lenRatio * Math.cos(rad), ey: cy + r * lenRatio * Math.sin(rad) }
-  }
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={cx} cy={cy} r={r + 4} fill={isDark ? '#1c1c1e' : '#fff'} stroke={isDark ? '#38383a' : '#e5e5ea'} strokeWidth="1.5" filter="url(#clock-shadow)" />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={isDark ? '#38383a' : '#e5e5ea'} strokeWidth="0.5" />
-      {Array.from({ length: 60 }, (_, i) => {
-        const t = tickMark(i)
-        return <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke={color} strokeWidth={t.thick} strokeLinecap="round" opacity={i % 5 === 0 ? 1 : 0.4} />
-      })}
-      {[12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(n => {
-        const p = numberPos(n)
-        return <text key={n} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fill={color} fontSize={size * 0.06} fontWeight={n % 3 === 0 ? 600 : 400} fontFamily="-apple-system, sans-serif">{n}</text>
-      })}
-      {(() => { const h = handEnd(hourAngle, 0.5); return <line x1={cx} y1={cy} x2={h.ex} y2={h.ey} stroke={color} strokeWidth="4" strokeLinecap="round" /> })()}
-      {(() => { const m = handEnd(minAngle, 0.72); return <line x1={cx} y1={cy} x2={m.ex} y2={m.ey} stroke={color} strokeWidth="2.5" strokeLinecap="round" /> })()}
-      {(() => { const s = handEnd(secAngle, 0.82); return <><line x1={cx - (s.ex - cx) * 0.15} y1={cy - (s.ey - cy) * 0.15} x2={s.ex} y2={s.ey} stroke={accent} strokeWidth="1.2" strokeLinecap="round" /><circle cx={cx} cy={cy} r="3" fill={accent} /></> })()}
-      <circle cx={cx} cy={cy} r="4" fill={accent} />
-    </svg>
-  )
+interface TimerState {
+  elapsed: number // milliseconds
+  isRunning: boolean
 }
 
 export default function ClockApp() {
-  const [time, setTime] = useState(new Date())
-  const rafRef = useRef<number>(0)
-  const [tab, setTab] = useState<'clock' | 'world' | 'alarm' | 'stopwatch'>('clock')
-  const [stopwatchTime, setStopwatchTime] = useState(0)
-  const [swRunning, setSwRunning] = useState(false)
-  const swRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [mode, setMode] = useState<'clock' | 'stopwatch' | 'timer' | 'alarm'>('clock')
 
-  // Smooth analog clock: 60fps via requestAnimationFrame
+  // Stopwatch
+  const [sw, setSw] = useState<TimerState>({ elapsed: 0, isRunning: false })
+  const swStartRef = useRef(0)
+  const swFrameRef = useRef(0)
+
+  const tickStopwatch = useCallback(() => {
+    if (!sw.isRunning) return
+    setSw(prev => {
+      const now = performance.now()
+      return { ...prev, elapsed: prev.elapsed + (now - swStartRef.current) }
+    })
+    swStartRef.current = performance.now()
+    swFrameRef.current = requestAnimationFrame(tickStopwatch)
+  }, [sw.isRunning])
+
   useEffect(() => {
-    const tick = () => {
-      setTime(new Date())
-      rafRef.current = requestAnimationFrame(tick)
+    if (sw.isRunning) {
+      swStartRef.current = performance.now()
+      swFrameRef.current = requestAnimationFrame(tickStopwatch)
     }
-    rafRef.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [])
+    return () => cancelAnimationFrame(swFrameRef.current)
+  }, [sw.isRunning, tickStopwatch])
 
-  // Stopwatch timer
-  useEffect(() => {
-    if (swRunning) {
-      swRef.current = setInterval(() => setStopwatchTime(p => p + 10), 10)
-    } else if (swRef.current) {
-      clearInterval(swRef.current)
-      swRef.current = null
-    }
-    return () => { if (swRef.current) clearInterval(swRef.current) }
-  }, [swRunning])
+  const startStopwatch = () => setSw({ elapsed: 0, isRunning: true })
+  const toggleStopwatch = () => setSw(prev => ({ ...prev, isRunning: !prev.isRunning }))
+  const resetStopwatch = () => { setSw({ elapsed: 0, isRunning: false }); cancelAnimationFrame(swFrameRef.current) }
 
-  const formatTime = (d: Date) => {
-    const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0')
-    const ampm = h >= 12 ? 'PM' : 'AM'
-    const h12 = h % 12 || 12
-    return `${h12}:${m} ${ampm}`
-  }
-
-  const formatStopwatch = (ms: number) => {
+  const formatMs = (ms: number) => {
     const mins = Math.floor(ms / 60000)
     const secs = Math.floor((ms % 60000) / 1000)
     const centis = Math.floor((ms % 1000) / 10)
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(centis).padStart(2, '0')}`
+    return `${mins}:${String(secs).padStart(2, '0')}.${String(centis).padStart(2, '0')}`
   }
 
-  const tabs = [
-    { id: 'clock' as const, label: 'World Clock', icon: '🌍' },
-    { id: 'world' as const, label: 'World', icon: '🕐' },
-    { id: 'alarm' as const, label: 'Alarm', icon: '⏰' },
-    { id: 'stopwatch' as const, label: 'Stopwatch', icon: '⏱️' },
+  // Timer
+  const [timerInput, setTimerInput] = useState(5 * 60) // seconds
+  const [timer, setTimer] = useState<TimerState>({ elapsed: 0, isRunning: false })
+  const timerFrameRef = useRef(0)
+
+  const tickTimer = useCallback(() => {
+    if (!timer.isRunning) return
+    setTimer(prev => {
+      const remaining = timerInput * 1000 - prev.elapsed
+      if (remaining <= 0) {
+        return { elapsed: timerInput * 1000, isRunning: false }
+      }
+      const now = performance.now()
+      return { ...prev, elapsed: prev.elapsed + (now - (timer as any).__lastTick || now) }
+    })
+    ;(timer as any).__lastTick = performance.now()
+    timerFrameRef.current = requestAnimationFrame(tickTimer)
+  }, [timer.isRunning, timerInput])
+
+  useEffect(() => {
+    if (timer.isRunning) {
+      timerFrameRef.current = requestAnimationFrame(tickTimer)
+    }
+    return () => cancelAnimationFrame(timerFrameRef.current)
+  }, [timer.isRunning, tickTimer])
+
+  const startTimer = () => setTimer({ elapsed: 0, isRunning: true })
+  const toggleTimer = () => setTimer(prev => ({ ...prev, isRunning: !prev.isRunning }))
+  const resetTimer = () => { setTimer({ elapsed: 0, isRunning: false }); cancelAnimationFrame(timerFrameRef.current) }
+  const formatTimer = () => {
+    const remaining = Math.max(0, timerInput * 1000 - timer.elapsed)
+    const mins = Math.floor(remaining / 60000)
+    const secs = Math.floor((remaining % 60000) / 1000)
+    return `${mins}:${String(secs).padStart(2, '0')}`
+  }
+  const timerProgress = Math.min(100, (timer.elapsed / (timerInput * 1000)) * 100)
+
+  // Alarm
+  const [alarmTime, setAlarmTime] = useState('07:00')
+  const [alarms, setAlarms] = useState<{ id: string; time: string; enabled: boolean; label: string }[]>([])
+  const [alarmFired, setAlarmFired] = useState<string | null>(null)
+  const alarmCheckRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    alarmCheckRef.current = setInterval(() => {
+      const now = new Date()
+      const current = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+      alarms.forEach(a => {
+        if (a.enabled && a.time === current && now.getSeconds() === 0) {
+          setAlarmFired(a.id)
+        }
+      })
+    }, 1000)
+    return () => { if (alarmCheckRef.current) clearInterval(alarmCheckRef.current) }
+  }, [alarms])
+
+  const addAlarm = () => {
+    const alarm = { id: Date.now().toString(), time: alarmTime, enabled: true, label: 'Alarm' }
+    setAlarms(prev => [...prev, alarm])
+  }
+
+  const toggleAlarm = (id: string) => {
+    setAlarms(prev => prev.map(a => a.id === id ? { ...a, enabled: !a.enabled } : a))
+  }
+
+  const dismissAlarm = (id: string) => setAlarmFired(null)
+  const deleteAlarm = (id: string) => {
+    setAlarms(prev => prev.filter(a => a.id !== id))
+    if (alarmFired === id) setAlarmFired(null)
+  }
+
+  // World clocks
+  const worldClocks = [
+    { city: 'New York', zone: 'America/New_York', label: 'NY' },
+    { city: 'London', zone: 'Europe/London', label: 'LON' },
+    { city: 'Tokyo', zone: 'Asia/Tokyo', label: 'TKY' },
+    { city: 'Sydney', zone: 'Australia/Sydney', label: 'SYD' },
   ]
 
-  const worldZones = [
-    { city: 'New York', tz: 'America/New_York', offset: -4 },
-    { city: 'London', tz: 'Europe/London', offset: 1 },
-    { city: 'Tokyo', tz: 'Asia/Tokyo', offset: 9 },
-    { city: 'Sydney', tz: 'Australia/Sydney', offset: 10 },
-  ]
+  const [worldTimes, setWorldTimes] = useState<Record<string, string>>({})
+  useEffect(() => {
+    const tick = () => {
+      const t: Record<string, string> = {}
+      worldClocks.forEach(w => {
+        t[w.zone] = new Date().toLocaleTimeString('en-US', { timeZone: w.zone, hour: '2-digit', minute: '2-digit', hour12: true })
+      })
+      setWorldTimes(t)
+    }
+    tick()
+    const id = setInterval(tick, 30000)
+    return () => clearInterval(id)
+  }, [])
+
+  const tabs = [
+    { key: 'clock', label: 'World Clock' },
+    { key: 'stopwatch', label: 'Stopwatch' },
+    { key: 'timer', label: 'Timer' },
+    { key: 'alarm', label: 'Alarm' },
+  ] as const
 
   return (
-    <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
-            flex: 1, padding: '10px 0', fontSize: 12, color: tab === t.id ? '#007aff' : '#8e8e93',
-            background: 'transparent', border: 'none', borderBottom: tab === t.id ? '2px solid #007aff' : '2px solid transparent',
-            cursor: 'pointer', fontFamily: '-apple-system, sans-serif',
-          }}>
-            {t.icon} {t.label}
-          </button>
+    <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+        {tabs.map(tab => (
+          <button key={tab.key} onClick={() => setMode(tab.key)} style={{
+            flex: 1, padding: '10px 0', border: 'none', background: mode === tab.key ? 'rgba(255,255,255,0.1)' : 'transparent',
+            color: mode === tab.key ? '#fff' : '#8e8e93', fontSize: 12, fontWeight: 500, cursor: 'pointer',
+            borderBottom: mode === tab.key ? '2px solid #007aff' : '2px solid transparent',
+          }}>{tab.label}</button>
         ))}
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        {tab === 'clock' && (
-          <>
-            <AnalogClock size={200} isDark time={time} />
-            <div style={{ marginTop: 16, fontSize: 42, fontWeight: 200, color: '#fff', letterSpacing: -1 }}>{formatTime(time)}</div>
-            <div style={{ fontSize: 14, color: '#8e8e93', marginTop: 4 }}>
-              {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+
+      {/* Content */}
+      <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
+        {mode === 'clock' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{ fontSize: 64, fontWeight: 200, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+                {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+              </div>
+              <div style={{ fontSize: 14, color: '#8e8e93', marginTop: 8 }}>
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              </div>
             </div>
-          </>
-        )}
-        {tab === 'world' && (
-          <div style={{ width: '100%', maxWidth: 300 }}>
-            {worldZones.map(z => {
-              const zTime = new Date(time.toLocaleString('en-US', { timeZone: z.tz }))
-              const h = zTime.getHours(), m = String(zTime.getMinutes()).padStart(2, '0')
-              const ampm = h >= 12 ? 'PM' : 'AM'
-              const h12 = h % 12 || 12
-              const isNight = h < 6 || h >= 20
-              return (
-                <div key={z.city} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 4px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  <span style={{ color: '#fff', fontSize: 17 }}>{z.city}</span>
-                  <span style={{ color: isNight ? '#8e8e93' : '#007aff', fontSize: 17, fontWeight: 300 }}>{h12}:{m} {ampm}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {worldClocks.map(w => (
+                <div key={w.zone} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '14px 16px' }}>
+                  <div style={{ fontSize: 11, color: '#8e8e93', marginBottom: 4 }}>{w.city}</div>
+                  <div style={{ fontSize: 28, fontWeight: 300, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+                    {worldTimes[w.zone] || '--:--'}
+                  </div>
                 </div>
-              )
-            })}
+              ))}
+            </div>
           </div>
         )}
-        {tab === 'alarm' && (
-          <div style={{ textAlign: 'center', color: '#8e8e93' }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>⏰</div>
-            <div style={{ fontSize: 15 }}>No alarms set</div>
-            <div style={{ fontSize: 13, marginTop: 4, opacity: 0.6 }}>Tap + to add an alarm</div>
+
+        {mode === 'stopwatch' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '40px 0' }}>
+            <div style={{ fontSize: 72, fontWeight: 200, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+              {formatMs(sw.elapsed)}
+            </div>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <button onClick={sw.elapsed > 0 && !sw.isRunning ? resetStopwatch : toggleStopwatch} style={{
+                width: 72, height: 72, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 16, fontWeight: 500,
+                background: sw.isRunning ? 'rgba(255,59,48,0.8)' : 'rgba(52,199,89,0.8)', color: '#fff',
+              }}>{sw.elapsed > 0 && !sw.isRunning ? 'Reset' : sw.isRunning ? 'Stop' : 'Start'}</button>
+              <button onClick={toggleStopwatch} style={{
+                width: 72, height: 72, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 16, fontWeight: 500,
+                background: 'rgba(255,255,255,0.15)', color: '#fff',
+              }}>{sw.isRunning ? 'Lap' : 'Resume'}</button>
+            </div>
+            {sw.elapsed > 0 && (
+              <div style={{ fontSize: 12, color: '#8e8e93' }}>
+                {Math.floor(sw.elapsed / 60000)} min {Math.floor((sw.elapsed % 60000) / 1000)} sec
+              </div>
+            )}
           </div>
         )}
-        {tab === 'stopwatch' && (
-          <>
-            <div style={{ fontSize: 48, fontWeight: 200, color: '#fff', fontVariantNumeric: 'tabular-nums', letterSpacing: -1 }}>
-              {formatStopwatch(stopwatchTime)}
+
+        {mode === 'timer' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '40px 0' }}>
+            {!timer.isRunning && timer.elapsed === 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#fff' }}>
+                <input type="number" value={Math.floor(timerInput / 60)} onChange={e => setTimerInput(parseInt(e.target.value) * 60)}
+                  style={{ width: 60, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: 24, textAlign: 'center', outline: 'none' }} />
+                <span style={{ fontSize: 18, color: '#8e8e93' }}>:</span>
+                <input type="number" value={timerInput % 60} onChange={e => setTimerInput(Math.floor(timerInput / 60) * 60 + parseInt(e.target.value))}
+                  style={{ width: 60, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: 24, textAlign: 'center', outline: 'none' }} />
+                <span style={{ fontSize: 12, color: '#8e8e93' }}>min sec</span>
+              </div>
+            )}
+            <div style={{
+              width: 200, height: 200, borderRadius: '50%', border: '4px solid rgba(255,255,255,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+            }}>
+              {timer.isRunning && (
+                <svg style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }} width="200" height="200">
+                  <circle cx="100" cy="100" r="94" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
+                  <circle cx="100" cy="100" r="94" fill="none" stroke="#ff9500" strokeWidth="4"
+                    strokeDasharray={`${timerProgress * 5.9} 590`} strokeLinecap="round" />
+                </svg>
+              )}
+              <div style={{ fontSize: 40, fontWeight: 300, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+                {timer.elapsed >= timerInput * 1000 ? 'Done!' : formatTimer()}
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 16, marginTop: 32 }}>
-              <button onClick={() => { setStopwatchTime(0); setSwRunning(false); }} style={{
-                width: 72, height: 72, borderRadius: '50%', background: '#3a3a3c', color: '#fff',
-                border: 'none', fontSize: 14, cursor: 'pointer', fontFamily: '-apple-system, sans-serif',
-              }}>Reset</button>
-              <button onClick={() => setSwRunning(!swRunning)} style={{
-                width: 72, height: 72, borderRadius: '50%', background: swRunning ? '#ff3b30' : '#30d158', color: '#fff',
-                border: 'none', fontSize: 14, cursor: 'pointer', fontFamily: '-apple-system, sans-serif',
-              }}>{swRunning ? 'Stop' : 'Start'}</button>
+            <div style={{ display: 'flex', gap: 12 }}>
+              {timer.elapsed > 0 && !timer.isRunning ? (
+                <button onClick={resetTimer} style={{ padding: '10px 24px', borderRadius: 24, border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: 14 }}>Reset</button>
+              ) : (
+                <button onClick={toggleTimer} style={{ padding: '10px 24px', borderRadius: 24, border: 'none', background: timer.isRunning ? 'rgba(255,59,48,0.8)' : 'rgba(52,199,89,0.8)', color: '#fff', cursor: 'pointer', fontSize: 14 }}>
+                  {timer.isRunning ? 'Pause' : 'Start'}
+                </button>
+              )}
             </div>
-          </>
+          </div>
+        )}
+
+        {mode === 'alarm' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <input type="time" value={alarmTime} onChange={e => setAlarmTime(e.target.value)}
+                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14, outline: 'none' }} />
+              <button onClick={addAlarm} style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>+ Add</button>
+            </div>
+            {alarms.length === 0 && (
+              <div style={{ textAlign: 'center', padding: 40, color: '#8e8e93', fontSize: 13 }}>No alarms set</div>
+            )}
+            {alarms.map(a => (
+              <div key={a.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12,
+                background: a.enabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 28, fontWeight: 300, color: a.enabled ? '#fff' : '#8e8e93' }}>{a.time}</div>
+                  <div style={{ fontSize: 11, color: '#8e8e93' }}>{a.label}</div>
+                </div>
+                <button onClick={() => toggleAlarm(a.id)} style={{
+                  width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
+                  background: a.enabled ? '#34c759' : 'rgba(255,255,255,0.15)', position: 'relative', transition: 'background 0.2s',
+                }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2,
+                    left: a.enabled ? 20 : 2, transition: 'left 0.2s',
+                  }} />
+                </button>
+                <button onClick={() => deleteAlarm(a.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#8e8e93' }}>✕</button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
+
+      {/* Alarm fired overlay */}
+      {alarmFired && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(20px)' }}>
+          <div style={{ textAlign: 'center', color: '#fff' }}>
+            <div style={{ fontSize: 72, marginBottom: 16 }}>⏰</div>
+            <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Alarm!</div>
+            <div style={{ fontSize: 16, color: '#8e8e93', marginBottom: 32 }}>It's {alarms.find(a => a.id === alarmFired)?.time || alarmTime}</div>
+            <button onClick={() => dismissAlarm(alarmFired)} style={{ padding: '12px 40px', borderRadius: 28, border: 'none', background: '#ff3b30', color: '#fff', fontSize: 16, fontWeight: 600, cursor: 'pointer' }}>Dismiss</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
