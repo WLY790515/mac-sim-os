@@ -61,7 +61,7 @@ export default function MenuBar({ apps }: MenuBarProps) {
         }}>
         {/* Apple logo → System menu */}
         <button onClick={() => { setCtrlMenuOpen(!ctrlMenuOpen); setActiveMenu(null); setWallpaperPicker(false); setHelpOpen(false) }} style={btnStyle}>
-          <svg width="14" height="17" viewBox="0 0 384 512" fill="white"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-23.1-113.2-82.7-112.7-156.5zM245.3 41.3c22.6-27.9 37.9-66.6 33.7-105.4-32.4 2.1-71.4 21.6-94.8 49-20.9 24.3-38.4 64-33.3 101.3 36.2 2.8 70.2-16.8 94.4-44.9z"/></svg>
+          <img src="/icons/apple-logo.svg" alt="" style={{ width: 14, height: 17, objectFit: 'contain', display: 'block' }}/>
         </button>
 
         {/* Active app name */}
@@ -193,7 +193,7 @@ export default function MenuBar({ apps }: MenuBarProps) {
         }} onClick={e => e.stopPropagation()}>
           <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3))', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-              <svg width="36" height="44" viewBox="0 0 384 512" fill="white"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-23.1-113.2-82.7-112.7-156.5zM245.3 41.3c22.6-27.9 37.9-66.6 33.7-105.4-32.4 2.1-71.4 21.6-94.8 49-20.9 24.3-38.4 64-33.3 101.3 36.2 2.8 70.2-16.8 94.4-44.9z"/></svg>
+              <img src="/icons/apple-logo.svg" alt="" style={{ width: 36, height: 44, objectFit: 'contain', flexShrink: 0, filter: 'brightness(0) invert(1)' }}/>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: -0.5 }}>mac-sim-os</div>
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Version 1.0.0 · 浏览器端 macOS 模拟器</div>
