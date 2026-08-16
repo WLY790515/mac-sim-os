@@ -13,6 +13,10 @@ interface State {
   theme: ThemeMode
   menuBarActiveApp: string | null
   wallpaper: string
+  glassEnabled: boolean
+  wifiOn: boolean
+  battery: number
+  darkMode: boolean
 }
 
 let zCounter = 100
@@ -101,12 +105,16 @@ function reducer(state: State, action: Action): State {
     case 'TOGGLE_THEME': return { ...state, theme: state.theme === 'light' ? 'dark' : 'light' }
     case 'SET_THEME': return { ...state, theme: action.theme }
     case 'SET_WALLPAPER': return { ...state, wallpaper: action.wallpaper }
+    case 'SET_GLASS': return { ...state, glassEnabled: action.enabled }
+    case 'SET_WIFI': return { ...state, wifiOn: action.on }
+    case 'SET_BATTERY': return { ...state, battery: action.level }
+    case 'SET_DARK_MODE': return { ...state, darkMode: action.on }
     case 'SET_MENU_BAR_APP': return { ...state, menuBarActiveApp: action.appId }
     default: return state
   }
 }
 
-const initState: State = { windows: [], activeWindowId: null, desktopFiles: [], theme: 'light', menuBarActiveApp: null, wallpaper: 'aurora' }
+const initState: State = { windows: [], activeWindowId: null, desktopFiles: [], theme: 'light', menuBarActiveApp: null, wallpaper: 'aurora', glassEnabled: true, wifiOn: true, battery: 87, darkMode: true }
 
 const AppContext = createContext<{ state: State; dispatch: React.Dispatch<Action> }>({ state: initState, dispatch: () => {} })
 

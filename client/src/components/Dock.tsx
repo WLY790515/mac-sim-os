@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useApp } from '../stores/app.store'
-import { useAppRegistry } from '../contexts/AppRegistry.context'
 import type { AppDefinition, WindowState } from '../types'
 import { iconRectsRef } from './iconRefs'
 
@@ -38,6 +37,12 @@ export default function Dock({ apps }: DockProps) {
   const iconRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const iconCenters = useRef<number[]>([])
   const hiddenRef = useRef<string[]>(getHiddenApps())
+  const [glassEnabled, setGlassEnabled] = useState(state.glassEnabled)
+
+  // Sync glassEnabled from store
+  useEffect(() => {
+    setGlassEnabled(state.glassEnabled)
+  }, [state.glassEnabled])
 
   const visibleApps = apps.filter(a => !hiddenRef.current.includes(a.id))
 
@@ -47,6 +52,8 @@ export default function Dock({ apps }: DockProps) {
     if (!container) return centers
     const containerRect = container.getBoundingClientRect()
     iconRectsRef.current.clear()
+
+    // Measure app icons
     visibleApps.forEach((app, i) => {
       const el = iconRefs.current.get(app.id)
       if (el) {
@@ -57,6 +64,8 @@ export default function Dock({ apps }: DockProps) {
         centers.push(-1)
       }
     })
+
+    // Measure trash icon (always at the end, after separator)
     const trashEl = iconRefs.current.get('trash')
     if (trashEl) {
       const tr = trashEl.getBoundingClientRect()
@@ -65,6 +74,7 @@ export default function Dock({ apps }: DockProps) {
     } else {
       centers.push(-1)
     }
+
     iconCenters.current = centers
   }, [visibleApps])
 
@@ -78,13 +88,15 @@ export default function Dock({ apps }: DockProps) {
     }
   }, [measureIcons])
 
+  // Total items = visible apps + 1 (trash)
+  const totalItems = visibleApps.length + 1
+
   // Hide separator if nothing on right side
   const hasRightApps = visibleApps.length > 0
-  const trashIndex = visibleApps.length
 
-  const getScale = useCallback((iconIndex: number): number => {
+  const getScale = useCallback((itemIndex: number): number => {
     if (mouseX === null || iconCenters.current.length === 0) return 1
-    const centerX = iconCenters.current[iconIndex]
+    const centerX = iconCenters.current[itemIndex]
     if (centerX < 0) return 1
     const distance = Math.abs(mouseX - centerX)
     if (distance > MAGNIFICATION_RANGE) return 1
@@ -113,7 +125,8 @@ export default function Dock({ apps }: DockProps) {
       if (minimized) {
         dispatch({ type: 'OPEN_WINDOW', app })
       } else {
-        const active = appWindows.find((w: WindowState) => w.zIndex === Math.max(...appWindows.map((ww: WindowState) => ww.zIndex)))
+        const maxZ = Math.max(...appWindows.map((w: WindowState) => w.zIndex))
+        const active = appWindows.find((w: WindowState) => w.zIndex === maxZ)
         if (active) dispatch({ type: 'MINIMIZE_WINDOW', id: active.id })
       }
     }
@@ -126,6 +139,7 @@ export default function Dock({ apps }: DockProps) {
   // Right-click handler
   const handleIconContextMenu = useCallback((e: React.MouseEvent, app: AppDefinition) => {
     e.preventDefault()
+    e.stopPropagation()
     const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
     setCtxMenu({ x: rect.left, y: rect.bottom + 4, appId: app.id })
   }, [])
@@ -143,9 +157,7 @@ export default function Dock({ apps }: DockProps) {
     hiddenRef.current = next
     setHiddenApps(next)
     setCtxMenu(null)
-    // Also close the window if it's hidden
     if (hiddenRef.current.includes(appId)) {
-      // Remove all windows of this app
       state.windows.filter((w: WindowState) => w.appId === appId).forEach((w: WindowState) => {
         dispatch({ type: 'CLOSE_WINDOW', id: w.id })
       })
@@ -166,10 +178,14 @@ export default function Dock({ apps }: DockProps) {
           left: '50%',
           transform: 'translateX(-50%)',
           height: DOCK_HEIGHT,
-          background: 'rgba(255,255,255,0.35)',
-          backdropFilter: 'blur(24px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-          border: '1px solid rgba(255,255,255,0.4)',
+          background: glassEnabled
+            ? 'rgba(255,255,255,0.18)'
+            : 'rgba(255,255,255,0.35)',
+          backdropFilter: glassEnabled ? 'blur(32px) saturate(250%)' : 'blur(24px) saturate(200%)',
+          WebkitBackdropFilter: glassEnabled ? 'blur(32px) saturate(250%)' : 'blur(24px) saturate(200%)',
+          border: glassEnabled
+            ? '1px solid rgba(255,255,255,0.28)'
+            : '1px solid rgba(255,255,255,0.4)',
           borderRadius: 20,
           display: 'flex',
           alignItems: 'flex-end',
@@ -266,25 +282,26 @@ export default function Dock({ apps }: DockProps) {
             left: ctxMenu.x,
             top: ctxMenu.y,
             zIndex: 99999,
-            background: 'rgba(255,255,255,0.95)',
-            backdropFilter: 'blur(20px)',
+            background: 'rgba(30,30,30,0.92)',
+            backdropFilter: 'blur(32px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(32px) saturate(200%)',
             borderRadius: 10,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            border: '1px solid rgba(255,255,255,0.12)',
             padding: '4px 0',
             minWidth: 180,
           }}
           onClick={() => setCtxMenu(null)}
         >
-          <div style={{ padding: '4px 12px 6px', borderBottom: '1px solid rgba(0,0,0,0.06)', marginBottom: 2 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#1d1d1f' }}>{ctxApp.name}</span>
+          <div style={{ padding: '6px 12px 6px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 2 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{ctxApp.name}</span>
           </div>
           <button onClick={() => handleDockClick(ctxApp)}
             style={menuBtnStyle}>
             {state.windows.some(w => w.appId === ctxApp.id && !w.isMinimized) ? '🗕 Minimize' : '🗖 Open'}
           </button>
           <button onClick={() => toggleHidden(ctxApp.id)}
-            style={{ ...menuBtnStyle, color: hiddenRef.current.includes(ctxApp.id) ? '#ff3b30' : '#1d1d1f' }}>
+            style={{ ...menuBtnStyle, color: hiddenRef.current.includes(ctxApp.id) ? '#ff6b6b' : '#fff' }}>
             {hiddenRef.current.includes(ctxApp.id) ? '👁️ Show in Dock' : '🚫 Hide from Dock'}
           </button>
         </div>
@@ -294,6 +311,6 @@ export default function Dock({ apps }: DockProps) {
 }
 
 const menuBtnStyle: React.CSSProperties = {
-  display: 'block', width: '100%', padding: '6px 12px', border: 'none', background: 'transparent',
-  textAlign: 'left', fontSize: 12, color: '#1d1d1f', cursor: 'pointer',
+  display: 'block', width: '100%', padding: '5px 12px', border: 'none', background: 'transparent',
+  textAlign: 'left', fontSize: 12, color: '#fff', cursor: 'pointer', borderRadius: 4,
 }
