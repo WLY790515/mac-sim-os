@@ -15,18 +15,22 @@
 ## 在线预览
 
 <div align="center">
-  <a href="https://wly790515.github.io/vibeos/preview.html" target="_blank" rel="noopener">
-    <img
-      src="https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E9%A2%84%E8%A7%88-Click%20to%20try%20live%20demo!-6366f1?style=for-the-badge&logo=vercel&logoColor=white"
-      alt="Try Live Demo"
-      style="max-width:100%;border-radius:8px"
-    >
-  </a>
+  <img src="assets/desktop_final.png" alt="VibeOS Desktop" width="800" />
 </div>
 
 👉 **[点击体验完整交互式预览](https://wly790515.github.io/vibeos/preview.html)** · [返回仓库主页](https://github.com/WLY790515/vibeos)
 
-> 预览页以全屏方式加载应用，无 README 干扰，可直接操作窗口动画、Dock、Spotlight 等所有功能。
+---
+
+## 截图
+
+| 桌面主界面 | Finder 文件管理 |
+|---|---|
+| ![桌面](assets/desktop_final.png) | ![Finder](assets/finder_final.png) |
+
+| Terminal 终端 | 计算器 |
+|---|---|
+| ![Terminal](assets/boot.png) | ![Calculator](assets/calculator_final.png) |
 
 ---
 
