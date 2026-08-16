@@ -29,7 +29,6 @@ export default function Window({
   window: win, isActive, onFocus, onClose, onMinimize, onMaximize,
   onMove, onResize, onSnap, appId, component: AppComponent, getDockIconRect,
 }: WindowProps) {
-  // ── refs ──────────────────────────────────────────────────────────
   const onMoveRef = useRef(onMove)
   const onResizeRef = useRef(onResize)
   const onFocusRef = useRef(onFocus)
@@ -40,13 +39,13 @@ export default function Window({
   const dragInfoRef = useRef({ active: false, startX: 0, startY: 0, origX: 0, origY: 0 })
   const resizeInfoRef = useRef({ active: false, startX: 0, startY: 0, origW: 0, origH: 0 })
 
-  // Track state transitions
-  const prevIsMinimizedRef = useRef(false)
-  const prevIsMaximizedRef = useRef(false)
-  // Prevent same animation from re-triggering on consecutive renders
+  // Track previous state — captured BEFORE effects run so restore/maximize can read stale value
+  const wasMinimizedRef = useRef(win.isMinimized)
+  const wasMaximizedRef = useRef(win.isMaximized)
   const lastAnimTypeRef = useRef<string | null>(null)
-  // Close animation is triggered manually via ref (not from Redux state)
   const closeRef = useRef<(() => void) | null>(null)
+  // Track whether a maximize animation is currently running
+  const isAnimatingMaxRef = useRef(false)
 
   useLayoutEffect(() => { onMoveRef.current = onMove }, [onMove])
   useLayoutEffect(() => { onResizeRef.current = onResize }, [onResize])
@@ -56,11 +55,9 @@ export default function Window({
   useLayoutEffect(() => { onMaximizeRef.current = onMaximize }, [onMaximize])
   useLayoutEffect(() => { getDockIconRectRef.current = getDockIconRect }, [getDockIconRect])
 
-  // Track previous state transitions
-  useLayoutEffect(() => {
-    prevIsMinimizedRef.current = win.isMinimized
-    prevIsMaximizedRef.current = win.isMaximized
-  }, [win.isMinimized, win.isMaximized])
+  // Always keep stale-state refs up to date
+  useLayoutEffect(() => { wasMinimizedRef.current = win.isMinimized }, [win.isMinimized])
+  useLayoutEffect(() => { wasMaximizedRef.current = win.isMaximized }, [win.isMaximized])
 
   useEffect(() => {
     function onDocMouseMove(e: MouseEvent) {
@@ -68,7 +65,6 @@ export default function Window({
         const d = dragInfoRef.current
         let nx = d.origX + (e.clientX - d.startX)
         let ny = Math.max(0, d.origY + (e.clientY - d.startY))
-        // Edge snap: if dragged near screen edge, trigger snap
         if (e.clientX < 8) onSnap?.('left')
         else if (e.clientX > window.innerWidth - 8) onSnap?.('right')
         else if (ny < 4) onSnap?.('top')
@@ -96,14 +92,12 @@ export default function Window({
   }, [onSnap])
 
   // ── animation engine ───────────────────────────────────────────────
-  const ANIM_MS = 500
-  // macOS uses easeOutCubic for open/maximize, easeInCubic for minimize
+  const ANIM_MS = 480
   const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3)
   const easeInCubic = (t: number): number => t * t * t
 
   const animRef = useRef<AnimationState | null>(null)
   const rafRef = useRef<number>(0)
-
   const renderRef = useRef({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
   const [renderPos, setRenderPos] = useState(() => ({
     x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1,
@@ -124,6 +118,7 @@ export default function Window({
       onResizeRef.current(r.w, r.h)
       r.opacity = 1
     }
+    isAnimatingMaxRef.current = false
     setRenderPos({ ...r })
   }, [])
 
@@ -132,9 +127,7 @@ export default function Window({
     if (!a) return
     const now = performance.now()
     const rawT = Math.min(1, (now - a.elapsed) / ANIM_MS)
-
     const easedT = a.isMinimizing ? easeInCubic(rawT) : easeOutCubic(rawT)
-
     const cur = {
       x: a.fromX + (a.toX - a.fromX) * easedT,
       y: a.fromY + (a.toY - a.fromY) * easedT,
@@ -144,7 +137,6 @@ export default function Window({
     }
     renderRef.current = cur
     setRenderPos(cur)
-
     if (rawT >= 1) {
       finishAnim(a)
     } else {
@@ -158,7 +150,7 @@ export default function Window({
     rafRef.current = requestAnimationFrame(tick)
   }, [tick])
 
-  // ── Close animation (triggered by red button, not Redux state) ─────
+  // ── Close animation ────────────────────────────────────────────────
   useLayoutEffect(() => {
     closeRef.current = () => {
       if (animRef.current || win.isMinimized) return
@@ -173,7 +165,7 @@ export default function Window({
         isClosing: true,
       }
       renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
-      setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.width, opacity: 1 })
+      setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
       startAnim(a)
     }
   }, [win.x, win.y, win.width, win.height, startAnim])
@@ -187,7 +179,6 @@ export default function Window({
     lastAnimTypeRef.current = animKey
 
     const rect = getDockIconRectRef.current?.()
-    // Start from dock bar (bottom of screen), centered on icon, height=0
     const dockX = rect ? rect.left + rect.width / 2 - win.width / 2 : win.x
     const dockY = window.innerHeight - 80 - win.height
     const a: AnimationState = {
@@ -206,13 +197,12 @@ export default function Window({
 
   // ── Minimize animation ─────────────────────────────────────────────
   useLayoutEffect(() => {
-    if (animRef.current || !win.isMinimized) return
+    if (animRef.current || !win.isMinimized || wasMinimizedRef.current) return
     const animKey = `min:${win.id}`
     if (lastAnimTypeRef.current === animKey) return
     lastAnimTypeRef.current = animKey
 
     const rect = getDockIconRectRef.current?.()
-    // Target: dock icon size, bottom aligned with dock bar top
     const targetX = rect ? rect.left : win.x
     const targetY = rect ? rect.top : win.y
     const targetW = rect ? Math.max(rect.width, 44) : 44
@@ -228,16 +218,16 @@ export default function Window({
     renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
     setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
     startAnim(a)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.isMinimized])
 
   // ── Maximize animation ─────────────────────────────────────────────
   useLayoutEffect(() => {
-    if (animRef.current) return
-    if (!win.isMaximized) return
-    if (!prevIsMaximizedRef.current) return
+    if (animRef.current || !win.isMaximized || wasMaximizedRef.current) return
     const animKey = `max:${win.id}`
     if (lastAnimTypeRef.current === animKey) return
     lastAnimTypeRef.current = animKey
+    isAnimatingMaxRef.current = true
 
     const a: AnimationState = {
       fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
@@ -250,13 +240,15 @@ export default function Window({
     renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
     setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
     startAnim(a)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.isMaximized])
 
-  // ── Restore from maximized ─────────────────────────────────────────
+  // ── Restore animation (maximized → original) ───────────────────────
   useLayoutEffect(() => {
     if (animRef.current) return
     if (win.isMaximized) return
-    if (!prevIsMaximizedRef.current) return
+    if (!wasMaximizedRef.current) return
+    if (isAnimatingMaxRef.current) return
     const animKey = `restore:${win.id}`
     if (lastAnimTypeRef.current === animKey) return
     lastAnimTypeRef.current = animKey
@@ -273,7 +265,8 @@ export default function Window({
     renderRef.current = { x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 }
     setRenderPos({ x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 })
     startAnim(a)
-  }, [win.isMaximized, win.wasPosition])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [win.isMaximized])
 
   const handleTitleBarMouseDown = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement
@@ -356,17 +349,14 @@ export default function Window({
     display: 'flex', flexDirection: 'column',
     border: '1px solid rgba(0,0,0,0.12)',
     pointerEvents: isAnimating ? 'none' : 'auto',
-    // macOS-style multi-layer shadow
     boxShadow: isActive
       ? '0 0 0 1px rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.28), 0 8px 20px rgba(0,0,0,0.14)'
       : '0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)',
   }
 
-  // Only hide when minimized AND not animating (minimize animation plays first)
-  // Only render maximized layout when not animating
   if (win.isMinimized && !isAnimating) return null
 
-  if (win.isMaximized && !isAnimating) {
+  if (win.isMaximized && !isAnimating && !isAnimatingMaxRef.current) {
     return (
       <div style={{ ...baseStyle, borderRadius: 0, left: 0, top: 25, width: '100vw', height: `calc(100vh - 25px - 80px)` }} onMouseDown={onFocusRef.current}>
         {titleBar}
