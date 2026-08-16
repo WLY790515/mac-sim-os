@@ -136,10 +136,10 @@ export default function ClockApp() {
   }, [])
 
   const tabs = [
-    { key: 'clock', label: 'World Clock' },
-    { key: 'stopwatch', label: 'Stopwatch' },
-    { key: 'timer', label: 'Timer' },
-    { key: 'alarm', label: 'Alarm' },
+    { key: 'clock', label: '世界时钟' },
+    { key: 'stopwatch', label: '秒表' },
+    { key: 'timer', label: '计时器' },
+    { key: 'alarm', label: '闹钟' },
   ] as const
 
   return (
@@ -189,7 +189,7 @@ export default function ClockApp() {
               <button onClick={sw.elapsed > 0 && !sw.isRunning ? resetStopwatch : toggleStopwatch} style={{
                 width: 72, height: 72, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 16, fontWeight: 500,
                 background: sw.isRunning ? 'rgba(255,59,48,0.8)' : 'rgba(52,199,89,0.8)', color: '#fff',
-              }}>{sw.elapsed > 0 && !sw.isRunning ? 'Reset' : sw.isRunning ? 'Stop' : 'Start'}</button>
+              }}>{sw.elapsed > 0 && !sw.isRunning ? '重置' : sw.isRunning ? '停止' : '开始'}</button>
               <button onClick={toggleStopwatch} style={{
                 width: 72, height: 72, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 16, fontWeight: 500,
                 background: 'rgba(255,255,255,0.15)', color: '#fff',
@@ -197,7 +197,7 @@ export default function ClockApp() {
             </div>
             {sw.elapsed > 0 && (
               <div style={{ fontSize: 12, color: '#8e8e93' }}>
-                {Math.floor(sw.elapsed / 60000)} min {Math.floor((sw.elapsed % 60000) / 1000)} sec
+                {Math.floor(sw.elapsed / 60000)} 分 {Math.floor((sw.elapsed % 60000) / 1000)} 秒
               </div>
             )}
           </div>
@@ -227,15 +227,15 @@ export default function ClockApp() {
                 </svg>
               )}
               <div style={{ fontSize: 40, fontWeight: 300, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
-                {timer.elapsed >= timerInput * 1000 ? 'Done!' : formatTimer()}
+                {timer.elapsed >= timerInput * 1000 ? '时间到！' : formatTimer()}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               {timer.elapsed > 0 && !timer.isRunning ? (
-                <button onClick={resetTimer} style={{ padding: '10px 24px', borderRadius: 24, border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: 14 }}>Reset</button>
+                <button onClick={resetTimer} style={{ padding: '10px 24px', borderRadius: 24, border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: 14 }}>重置</button>
               ) : (
                 <button onClick={toggleTimer} style={{ padding: '10px 24px', borderRadius: 24, border: 'none', background: timer.isRunning ? 'rgba(255,59,48,0.8)' : 'rgba(52,199,89,0.8)', color: '#fff', cursor: 'pointer', fontSize: 14 }}>
-                  {timer.isRunning ? 'Pause' : 'Start'}
+                  {timer.isRunning ? '暂停' : '开始'}
                 </button>
               )}
             </div>
@@ -250,7 +250,7 @@ export default function ClockApp() {
               <button onClick={addAlarm} style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>+ Add</button>
             </div>
             {alarms.length === 0 && (
-              <div style={{ textAlign: 'center', padding: 40, color: '#8e8e93', fontSize: 13 }}>No alarms set</div>
+              <div style={{ textAlign: 'center', padding: 40, color: '#8e8e93', fontSize: 13 }}>暂无闹钟</div>
             )}
             {alarms.map(a => (
               <div key={a.id} style={{

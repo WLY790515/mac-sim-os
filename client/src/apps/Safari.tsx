@@ -101,7 +101,7 @@ export default function SafariApp() {
           background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.08)',
           padding: '8px 12px', display: 'flex', gap: 8, flexWrap: 'wrap',
         }}>
-          <span style={{ fontSize: 11, color: '#86868b', alignSelf: 'center', marginRight: 4 }}>Bookmarks:</span>
+          <span style={{ fontSize: 11, color: '#86868b', alignSelf: 'center', marginRight: 4 }}>收藏夹：</span>
           {BOOKMARKS.map(b => (
             <button key={b.url} onClick={() => { navigate(b.url); setShowBookmarks(false); }}
               style={{ padding: '4px 10px', borderRadius: 12, fontSize: 12, background: 'rgba(0,0,0,0.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>

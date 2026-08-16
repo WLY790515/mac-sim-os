@@ -20,8 +20,8 @@ export default function AboutApp() {
         </div>
         <div style={{ color: '#fff' }}>
           <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: -0.5 }}>mac-sim-os</div>
-          <div style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>A macOS Simulator in Your Browser</div>
-          <div style={{ fontSize: 11, opacity: 0.4, marginTop: 2 }}>Version 1.0.0 · Built with React + TypeScript</div>
+          <div style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>浏览器中的 macOS 模拟器</div>
+          <div style={{ fontSize: 11, opacity: 0.4, marginTop: 2 }}>版本 1.0.0 · 基于 React + TypeScript 构建</div>
         </div>
       </div>
 
@@ -29,27 +29,27 @@ export default function AboutApp() {
       <div style={{ flex: 1, overflow: 'auto', padding: '24px 36px' }}>
         {/* Author */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Author</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>作者</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#667eea,#764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 700 }}>W</div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 600, color: '#1d1d1f' }}>WLY790515</div>
-              <div style={{ fontSize: 12, color: '#86868b' }}>Full-stack developer · Open source enthusiast</div>
+              <div style={{ fontSize: 12, color: '#86868b' }}>全栈开发者 · 开源爱好者</div>
             </div>
           </div>
         </div>
 
         {/* Project */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>About the Project</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>关于项目</div>
           <div style={{ background: '#fff', borderRadius: 12, padding: 16, border: '1px solid rgba(0,0,0,0.06)' }}>
             <p style={{ fontSize: 13, lineHeight: 1.7, color: '#1d1d1f', margin: 0 }}>
-              A full macOS simulation running entirely in the browser. Features a working desktop with windows,
-              a Dock, menu bar, and 19 built-in applications including Terminal with real filesystem commands,
-              a persistent file system via IndexedDB, and smooth animations.
+              一款在浏览器中完整运行的 macOS 模拟器。支持桌面窗口、Dock 栏、菜单栏、
+              19 款内置应用，包括带真实文件系统命令的终端、基于 IndexedDB 的持久化文件系统，
+              以及流畅的窗口动画效果。
             </p>
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              {['React 18', 'TypeScript 5', 'IndexedDB', 'Vite 5', 'Electron'].map(tag => (
+              {['React 18', 'TypeScript 5', 'IndexedDB', 'Vite 5'].map(tag => (
                 <span key={tag} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 6, background: 'rgba(0,122,255,0.08)', color: '#007aff', fontWeight: 500 }}>{tag}</span>
               ))}
             </div>
@@ -58,17 +58,17 @@ export default function AboutApp() {
 
         {/* Features */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Features</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>功能特性</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {[
-              { icon: '🪟', text: 'macOS-style windows & animations' },
-              { icon: '📁', text: 'IndexedDB virtual filesystem' },
-              { icon: '⌘', text: 'Multi-tab terminal with real FS commands' },
-              { icon: '🖥️', text: 'Mission Control overview' },
-              { icon: '⌨️', text: 'Keyboard shortcuts (Cmd+W/M/Q/D/F)' },
-              { icon: '🎨', text: '8 gradient wallpapers + custom URLs' },
-              { icon: '📱', text: '19 built-in applications' },
-              { icon: '🚀', text: 'GitHub Pages & Railway deployable' },
+              { icon: '🪟', text: 'macOS 风格窗口与动画' },
+              { icon: '📁', text: 'IndexedDB 虚拟文件系统' },
+              { icon: '⌘', text: '多标签终端，支持真实文件系统命令' },
+              { icon: '🖥️', text: '任务控制中心概览' },
+              { icon: '⌨️', text: '快捷键支持（Cmd+W/M/Q/D/F）' },
+              { icon: '🎨', text: '8 款渐变壁纸 + 自定义 URL' },
+              { icon: '📱', text: '19 款内置应用' },
+              { icon: '🚀', text: 'GitHub Pages & Railway 部署' },
             ].map(f => (
               <div key={f.text} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fff', borderRadius: 10, border: '1px solid rgba(0,0,0,0.05)' }}>
                 <span style={{ fontSize: 16 }}>{f.icon}</span>
@@ -80,13 +80,13 @@ export default function AboutApp() {
 
         {/* Links */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Links</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#86868b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>相关链接</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              { label: 'GitHub Repository', url: 'https://github.com/WLY790515/mac-sim-os', icon: '📦' },
-              { label: 'Live Demo (GitHub Pages)', url: 'https://wly790515.github.io/mac-sim-os/', icon: '🌐' },
-              { label: 'Preview Page', url: 'https://wly790515.github.io/mac-sim-os/preview.html', icon: '👁️' },
-              { label: 'Report Issues / Feature Requests', url: 'https://github.com/WLY790515/mac-sim-os/issues', icon: '🐛' },
+              { label: 'GitHub 仓库', url: 'https://github.com/WLY790515/mac-sim-os', icon: '📦' },
+              { label: '在线演示（GitHub Pages）', url: 'https://wly790515.github.io/mac-sim-os/', icon: '🌐' },
+              { label: '预览页面', url: 'https://wly790515.github.io/mac-sim-os/preview.html', icon: '👁️' },
+              { label: '报告问题 / 功能建议', url: 'https://github.com/WLY790515/mac-sim-os/issues', icon: '🐛' },
             ].map(link => (
               <a key={link.url} href={link.url} target="_blank" rel="noreferrer"
                 style={{
@@ -110,7 +110,7 @@ export default function AboutApp() {
 
         {/* Star */}
         <div style={{ marginTop: 24, textAlign: 'center' }}>
-          <div style={{ fontSize: 13, color: '#86868b', marginBottom: 10 }}>If you enjoy mac-sim-os, give it a star on GitHub!</div>
+          <div style={{ fontSize: 13, color: '#86868b', marginBottom: 10 }}>如果您喜欢 mac-sim-os，请在 GitHub 上点个星星支持！</div>
           <a href="https://github.com/WLY790515/mac-sim-os" target="_blank" rel="noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 20px',
@@ -118,7 +118,7 @@ export default function AboutApp() {
               color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none',
               boxShadow: '0 4px 16px rgba(102,126,234,0.35)',
             }}>
-            ⭐ Star on GitHub
+            ⭐ 在 GitHub 上收藏
           </a>
         </div>
       </div>

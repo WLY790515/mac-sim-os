@@ -21,12 +21,12 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { id: 'wallpaper', icon: '🖼️', label: 'Wallpaper' },
-  { id: 'general',   icon: '⚙️', label: 'General' },
+  { id: 'wallpaper', icon: '🖼️', label: '壁纸' },
+  { id: 'general',   icon: '⚙️', label: '通用' },
   { id: 'wifi',      icon: '📶', label: 'Wi-Fi' },
-  { id: 'bluetooth', icon: '🔵', label: 'Bluetooth' },
-  { id: 'sound',     icon: '🔊', label: 'Sound' },
-  { id: 'about',     icon: 'ℹ️', label: 'About' },
+  { id: 'bluetooth', icon: '🔵', label: '蓝牙' },
+  { id: 'sound',     icon: '🔊', label: '声音' },
+  { id: 'about',     icon: 'ℹ️', label: '关于' },
 ]
 
 export default function SettingsApp() {
@@ -100,9 +100,9 @@ export default function SettingsApp() {
       <Row icon="📶" label="Wi-Fi" sub="mac-sim-os-Network · Connected" right={<Toggle on={true} onClick={() => {}} />} />
       <div style={{ margin: '0 16px 12px', padding: '8px 12px', background: 'rgba(0,122,255,0.08)', borderRadius: 8, fontSize: 12, color: '#007aff' }}>✓ Connected to mac-sim-os-Network</div>
       {[
-        { name: 'mac-sim-os-Network', security: 'WPA2', signal: 'Strong', connected: true },
-        { name: 'Guest-WiFi', security: 'Open', signal: 'Weak', connected: false },
-        { name: 'CoffeeShop_5G', security: 'WPA3', signal: 'Medium', connected: false },
+        { name: '家庭网络', security: 'WPA2', signal: '强', connected: true },
+        { name: 'Guest-WiFi', security: 'Open', signal: '弱', connected: false },
+        { name: 'CoffeeShop_5G', security: 'WPA3', signal: '中等', connected: false },
       ].map(net => (
         <Row key={net.name} icon="📶" label={net.name} sub={`${net.security} · ${net.signal}`} right={net.connected ? <span style={{ color: '#007aff', fontSize: 16 }}>✓</span> : undefined} />
       ))}
@@ -139,8 +139,8 @@ export default function SettingsApp() {
             <span style={{ fontSize: 12, color: '#86868b', width: 32 }}>50%</span>
           </div>
         </div>
-        <Row icon="🔕" label="Play sound on startup" right={<Toggle on={true} onClick={() => {}} />} />
-        <Row icon="🔔" label="Alert sound" sub="Breeze" right={<span style={{ fontSize: 11, color: '#007aff', cursor: 'pointer' }}>Choose…</span>} />
+        <Row icon="🔕" label="启动时播放声音" right={<Toggle on={true} onClick={() => {}} />} />
+        <Row icon="🔔" label="提醒音" sub="微风" right={<span style={{ fontSize: 11, color: '#007aff', cursor: 'pointer' }}>选择…</span>} />
       </div>
     )
   }
@@ -152,7 +152,7 @@ export default function SettingsApp() {
           <svg width="32" height="40" viewBox="0 0 384 512" fill="white"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-23.1-113.2-82.7-112.7-156.5zM245.3 41.3c22.6-27.9 37.9-66.6 33.7-105.4-32.4 2.1-71.4 21.6-94.8 49-20.9 24.3-38.4 64-33.3 101.3 36.2 2.8 70.2-16.8 94.4-44.9z"/></svg>
         </div>
         <div style={{ fontSize: 18, fontWeight: 700, color: '#1d1d1f' }}>mac-sim-os</div>
-        <div style={{ fontSize: 13, color: '#86868b', marginTop: 4 }}>Version 1.0.0</div>
+        <div style={{ fontSize: 13, color: '#86868b', marginTop: 4 }}>版本 1.0.0</div>
       </div>
       <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
         <Row icon="💻" label="Mac-sim-os Simulator" />
@@ -162,10 +162,10 @@ export default function SettingsApp() {
         <Row icon="🔧" label="Processor" sub="Apple M2 Pro" />
       </div>
       <div style={{ marginTop: 16, padding: '12px 16px', background: '#fff', borderRadius: 12, fontSize: 12, color: '#86868b', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-        <div style={{ fontWeight: 600, color: '#1d1d1f', marginBottom: 4 }}>mac-sim-os 1.0.0 (Simulator)</div>
-        <div>macOS Sequoia Design Language · React + TypeScript</div>
-        <div>WebContainer Terminal · Virtual Filesystem</div>
-        <div style={{ marginTop: 8, color: '#007aff', cursor: 'pointer' }}>Check for Updates →</div>
+        <div style={{ fontWeight: 600, color: '#1d1d1f', marginBottom: 4 }}>mac-sim-os 1.0.0（模拟器）</div>
+        <div>macOS Sequoia 设计风格 · React + TypeScript</div>
+        <div>WebContainer 终端 · 虚拟文件系统</div>
+        <div style={{ marginTop: 8, color: '#007aff', cursor: 'pointer' }}>检查更新 →</div>
       </div>
     </div>
   )

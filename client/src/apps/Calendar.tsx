@@ -125,7 +125,7 @@ export default function CalendarApp() {
                   </div>
                 ))}
                 {dayEvents.length > 3 && (
-                  <div style={{ fontSize: 10, color: '#86868b', marginTop: 2 }}>+{dayEvents.length - 3} more</div>
+                  <div style={{ fontSize: 10, color: '#86868b', marginTop: 2 }}>+{dayEvents.length - 3} 更多</div>
                 )}
               </div>
             )
@@ -163,7 +163,7 @@ export default function CalendarApp() {
             <button onClick={() => setShowAdd(true)} style={{
               width: '100%', padding: '8px 0', borderRadius: 10, border: 'none',
               background: '#007aff', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}>+ Add Event</button>
+            }}>＋ 添加事件</button>
           </div>
         )}
       </div>
@@ -178,12 +178,12 @@ export default function CalendarApp() {
             background: '#fff', borderRadius: 16, padding: 24, width: 340,
             boxShadow: '0 24px 80px rgba(0,0,0,0.3)',
           }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', marginBottom: 16 }}>New Event</div>
-            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Event title" autoFocus
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', marginBottom: 16 }}>新建事件</div>
+            <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="事件标题" autoFocus
               style={inputStyle} />
-            <input value={newTime} onChange={e => setNewTime(e.target.value)} type="time" placeholder="Time"
+            <input value={newTime} onChange={e => setNewTime(e.target.value)} type="time" placeholder="时间"
               style={{ ...inputStyle, marginTop: 8 }} />
-            <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Description (optional)" rows={2}
+            <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="描述（可选）" rows={2}
               style={{ ...inputStyle, marginTop: 8, resize: 'none' }} />
             <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
               {EVENT_COLORS.map(c => (
@@ -193,10 +193,10 @@ export default function CalendarApp() {
                 }} />
               ))}
             </div>
-            <div style={{ fontSize: 11, color: '#86868b', marginTop: 6 }}>Selected: {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+            <div style={{ fontSize: 11, color: '#86868b', marginTop: 6 }}>已选择：{new Date(selectedDate + 'T00:00:00').toLocaleDateString('zh-CN', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button onClick={() => setShowAdd(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', cursor: 'pointer', fontSize: 13 }}>Cancel</button>
-              <button onClick={handleAddEvent} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Save</button>
+              <button onClick={() => setShowAdd(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', cursor: 'pointer', fontSize: 13 }}>取消</button>
+              <button onClick={handleAddEvent} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>保存</button>
             </div>
           </div>
         </div>

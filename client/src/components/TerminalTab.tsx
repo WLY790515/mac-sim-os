@@ -25,8 +25,8 @@ export default function TerminalTab({ tabId, cwd, onCwdChange, onExit }: Termina
   useEffect(() => {
     if (lines.length === 0) {
       setLines([{ id: ++procId.current, output: [
-        `mac-sim-os Terminal v1.0`,
-        `Type 'help' for available commands.`,
+        `mac-sim-os 终端 v1.0`,
+        `输入 'help' 查看可用命令。`,
         '',
       ]}])
     }

@@ -142,8 +142,8 @@ export default function WeatherApp() {
           {[
             { label: 'Humidity', value: `${city.humidity}%`, icon: '💧' },
             { label: 'Wind', value: `${city.wind} mph`, icon: '💨' },
-            { label: 'Feels Like', value: `${city.feels}°`, icon: '🌡️' },
-            { label: 'UV Index', value: city.temp > 70 ? '6 (High)' : '3 (Moderate)', icon: '☀️' },
+            { label: '体感温度', value: `${city.feels}°`, icon: '🌡️' },
+            { label: '紫外线指数', value: city.temp > 70 ? '高（6）' : '中等（3）', icon: '☀️' },
           ].map(item => (
             <div key={item.label} style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: 14, padding: '14px 16px', border: '1px solid rgba(255,255,255,0.2)' }}>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>{item.icon} {item.label}</div>

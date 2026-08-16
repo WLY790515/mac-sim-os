@@ -137,7 +137,7 @@ export default function MailApp() {
         <div style={{ padding: '8px 14px', fontSize: 11, color: '#86868b' }}>
           <button onClick={() => { setRefreshing(true); setTimeout(() => { setRefreshing(false); }, 1000) }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#007aff', fontSize: 11, padding: 0 }}>
-            {refreshing ? '↻ Refreshing...' : '↻ Refresh'}
+            {refreshing ? '↻ 刷新中…' : '↻ 刷新'}
           </button>
         </div>
       </div>
@@ -145,7 +145,7 @@ export default function MailApp() {
       {/* Email list */}
       <div style={{ width: 280, borderRight: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)' }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search emails..."
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索邮件…"
             style={{ width: '100%', padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.04)', fontSize: 12, outline: 'none' }} />
         </div>
         <div style={{ flex: 1, overflow: 'auto' }}>
@@ -183,8 +183,9 @@ export default function MailApp() {
                 <div style={{ fontSize: 11, color: '#86868b' }}>From: {selected.from} ({selected.fromEmail}) · {selected.date}</div>
               </div>
               <button onClick={() => toggleStar(selected.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>{selected.starred ? '⭐' : '☆'}</button>
-              <button onClick={() => deleteEmail(selected.id)} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#ff3b30', cursor: 'pointer', fontSize: 12 }}>Delete</button>
-              <button onClick={() => { setCompose({ to: selected.fromEmail, subject: 'Re: ' + selected.subject, body: '' }); setShowCompose(true) }} style={{ padding: '4px 12px', borderRadius: 6, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Reply</button>
+              <button onClick={() => deleteEmail(selected.id)} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#ff3b30', cursor: 'pointer', fontSize: 12 }}>删除</button>
+              <button onClick={() => { setCompose({ to: selected.fromEmail, subject: `回复: ${selected.subject}`, body: '' }); setShowCompose(true) }} style={{ padding: '4px 12px', borderRadius: 6, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>回复</button>
+              <button onClick={() => { setCompose({ to: selected.fromEmail, subject: '', body: '' }); setShowCompose(true) }} style={{ padding: '4px 12px', borderRadius: 6, border: 'none', background: '#f5f5f7', color: '#1d1d1f', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>转发</button>
             </div>
             <div ref={emailContentRef} style={{ flex: 1, overflow: 'auto', padding: 24 }}>
               <div style={{ fontSize: 14, lineHeight: 1.8, color: '#1d1d1f', whiteSpace: 'pre-wrap' }}>{selected.body}</div>
@@ -214,13 +215,13 @@ export default function MailApp() {
                 style={{ width: '100%', padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', marginBottom: 4 }}>Subject</div>
-              <input value={compose.subject} onChange={e => setCompose(p => ({ ...p, subject: e.target.value }))} placeholder="Subject"
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', marginBottom: 4 }}>主题</div>
+              <input value={compose.subject} onChange={e => setCompose(p => ({ ...p, subject: e.target.value }))} placeholder="输入主题"
                 style={{ width: '100%', padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', marginBottom: 4 }}>Message</div>
-              <textarea value={compose.body} onChange={e => setCompose(p => ({ ...p, body: e.target.value }))} placeholder="Write your message..." rows={8}
+              <textarea value={compose.body} onChange={e => setCompose(p => ({ ...p, body: e.target.value }))} placeholder="输入内容…" rows={8}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)', fontSize: 14, outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

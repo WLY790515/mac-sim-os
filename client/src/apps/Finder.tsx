@@ -86,7 +86,7 @@ export default function FinderApp() {
   }, [currentParentId])
 
   const handleCreateFile = useCallback(async () => {
-    const name = 'New File.txt'
+    const name = '新建文件.txt'
     const file = await FS.addFileToFolder(currentParentId, name, '')
     setItems(prev => [...prev, file])
   }, [currentParentId])
@@ -169,7 +169,7 @@ export default function FinderApp() {
       {/* Sidebar */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <div style={{ width: 170, background: 'rgba(0,0,0,0.04)', borderRight: '1px solid rgba(0,0,0,0.08)', padding: '8px 0', overflow: 'auto', flexShrink: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', padding: '4px 12px 6px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Favorites</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', padding: '4px 12px 6px', textTransform: 'uppercase', letterSpacing: 0.5 }}>收藏夹</div>
           {items.filter(i => i.kind === 'folder').slice(0, 6).map(folder => (
             <div key={folder.id} onClick={() => { setPath([ROOT_ID, folder.id]); setSelected(null) }}
               style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
@@ -178,9 +178,9 @@ export default function FinderApp() {
               <span style={{ fontSize: 14 }}>📁</span> {folder.name}
             </div>
           ))}
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', padding: '10px 12px 6px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Locations</div>
-          <div style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>💻 mac-sim-os (Local)</div>
-          <div style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: 0.6 }}>☁️ iCloud Drive</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', padding: '10px 12px 6px', textTransform: 'uppercase', letterSpacing: 0.5 }}>位置</div>
+          <div style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>💻 mac-sim-os（本地）</div>
+          <div style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: 0.6 }}>☁️ iCloud 云盘</div>
         </div>
 
         {/* Main */}
@@ -225,7 +225,7 @@ export default function FinderApp() {
           <div style={{ flex: 1, overflow: 'auto', padding: 16 }}
             onContextMenu={e => handleContextMenu(e)}>
             {filteredItems.length === 0 && !searchQuery && (
-              <div style={{ color: '#86868b', fontSize: 14, padding: 20, textAlign: 'center', width: '100%' }}>This folder is empty</div>
+              <div style={{ color: '#86868b', fontSize: 14, padding: 20, textAlign: 'center', width: '100%' }}>此文件夹为空</div>
             )}
             {filteredItems.length === 0 && searchQuery && (
               <div style={{ color: '#86868b', fontSize: 14, padding: 20, textAlign: 'center', width: '100%' }}>No results for "{searchQuery}"</div>
@@ -259,10 +259,10 @@ export default function FinderApp() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.1)', color: '#86868b', fontSize: 11, textAlign: 'left' }}>
-                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>Name</th>
-                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>Size</th>
-                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>Type</th>
-                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>Modified</th>
+                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>名称</th>
+                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>大小</th>
+                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>类型</th>
+                    <th style={{ padding: '4px 8px', fontWeight: 500 }}>修改时间</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -279,7 +279,7 @@ export default function FinderApp() {
                         {node.name}
                       </td>
                       <td style={{ padding: '4px 8px', color: '#86868b' }}>{node.kind === 'folder' ? '—' : FS.formatSize(node.size)}</td>
-                      <td style={{ padding: '4px 8px', color: '#86868b' }}>{node.kind === 'folder' ? 'Folder' : (node.name.split('.').pop()?.toUpperCase() || 'File')}</td>
+                      <td style={{ padding: '4px 8px', color: '#86868b' }}>{node.kind === 'folder' ? '文件夹' : (node.name.split('.').pop()?.toUpperCase() || '文件')}</td>
                       <td style={{ padding: '4px 8px', color: '#86868b' }}>{FS.formatDate(node.modifiedAt)}</td>
                     </tr>
                   ))}
@@ -300,19 +300,19 @@ export default function FinderApp() {
         <div style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, background: '#fff', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', zIndex: 9999, minWidth: 180, overflow: 'hidden' }}>
           {ctxMenu.targetItem ? (
             <>
-              <ContextMenuItem label="Open" action={() => { if (ctxMenu.targetItem) handleNav(ctxMenu.targetItem) }} />
-              {ctxMenu.targetItem.kind === 'file' && <ContextMenuItem label="Download" action={() => { if (ctxMenu.targetItem) handleDownload(ctxMenu.targetItem) }} />}
+              <ContextMenuItem label="打开" action={() => { if (ctxMenu.targetItem) handleNav(ctxMenu.targetItem) }} />
+              {ctxMenu.targetItem.kind === 'file' && <ContextMenuItem label="下载" action={() => { if (ctxMenu.targetItem) handleDownload(ctxMenu.targetItem) }} />}
               <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '2px 0' }} />
-              <ContextMenuItem label="Rename" action={() => { if (ctxMenu.targetItem) { setRenameId(ctxMenu.targetItem!.id); setRenameValue(ctxMenu.targetItem!.name) } }} />
-              <ContextMenuItem label="Delete" action={() => { if (ctxMenu.targetItem) handleDelete(ctxMenu.targetItem.id) }} danger />
+              <ContextMenuItem label="重命名" action={() => { if (ctxMenu.targetItem) { setRenameId(ctxMenu.targetItem!.id); setRenameValue(ctxMenu.targetItem!.name) } }} />
+              <ContextMenuItem label="删除" action={() => { if (ctxMenu.targetItem) handleDelete(ctxMenu.targetItem.id) }} danger />
             </>
           ) : (
             <>
-              <ContextMenuItem label="New Folder" action={handleCreateFolder} />
-              <ContextMenuItem label="New File" action={handleCreateFile} />
-              <ContextMenuItem label="Upload..." action={handleUpload} />
+              <ContextMenuItem label="新建文件夹" action={handleCreateFolder} />
+              <ContextMenuItem label="新建文件" action={handleCreateFile} />
+              <ContextMenuItem label="上传…" action={handleUpload} />
               <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '2px 0' }} />
-              <ContextMenuItem label="Paste" action={() => {}} />
+              <ContextMenuItem label="粘贴" action={() => {}} />
             </>
           )}
         </div>

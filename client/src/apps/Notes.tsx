@@ -71,7 +71,7 @@ export default function NotesApp() {
       {/* Sidebar */}
       <div style={{ width: 220, background: 'rgba(0,0,0,0.03)', borderRight: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '14px 14px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#1d1d1f' }}>Notes</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#1d1d1f' }}>备忘录</span>
           <button onClick={() => createNote()} style={{
             width: 26, height: 26, borderRadius: 6, border: '1px solid rgba(0,0,0,0.15)',
             background: '#fff', cursor: 'pointer', fontSize: 16, color: '#007aff',
@@ -92,7 +92,7 @@ export default function NotesApp() {
                 borderLeft: selectedId === note.id ? '3px solid #007aff' : '3px solid transparent',
               }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {note.title || 'Untitled'}
+                {note.title || '无标题'}
               </div>
               <div style={{ fontSize: 11, color: '#86868b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {note.content.replace(/\n/g, ' ').slice(0, 40)}
@@ -110,13 +110,13 @@ export default function NotesApp() {
         {selected ? (
           <>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(8px)' }}>
-              <input value={selected.title} onChange={e => updateNote({ title: e.target.value })} placeholder="Title"
+              <input value={selected.title} onChange={e => updateNote({ title: e.target.value })} placeholder="标题"
                 onFocus={() => setEditing(true)}
                 style={{ flex: 1, fontSize: 15, fontWeight: 600, border: 'none', background: 'transparent', outline: 'none', color: '#1d1d1f' }} />
               <select value={selected.color} onChange={e => updateNote({ color: e.target.value })}
                 style={{ width: 28, height: 28, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 6, cursor: 'pointer', background: selected.color, fontSize: 10, padding: 2 }} />
               <button onClick={() => deleteNote(selected.id)}
-                style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#ff3b30', cursor: 'pointer', fontSize: 12 }}>Delete</button>
+                style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#ff3b30', cursor: 'pointer', fontSize: 12 }}>删除</button>
             </div>
             <textarea ref={contentRef} value={selected.content}
               onChange={e => updateNote({ content: e.target.value })} onKeyDown={handleContentKeydown}
@@ -130,8 +130,8 @@ export default function NotesApp() {
         ) : (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#86868b' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📝</div>
-            <div style={{ fontSize: 16, fontWeight: 500, color: '#1d1d1f', marginBottom: 8 }}>No note selected</div>
-            <div style={{ fontSize: 13, marginBottom: 24 }}>Select a note or create a new one</div>
+            <div style={{ fontSize: 16, fontWeight: 500, color: '#1d1d1f', marginBottom: 8 }}>未选择笔记</div>
+            <div style={{ fontSize: 13, marginBottom: 24 }}>选择一条笔记或创建新的</div>
             <div style={{ display: 'flex', gap: 8 }}>
               {COLORS.slice(0, 4).map(c => (
                 <button key={c} onClick={() => createNote(c)} style={{

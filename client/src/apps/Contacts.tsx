@@ -80,7 +80,7 @@ export default function ContactsApp() {
       {/* Left sidebar */}
       <div style={{ width: 200, background: 'rgba(0,0,0,0.03)', borderRight: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '12px 12px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#1d1d1f' }}>Contacts</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#1d1d1f' }}>通讯录</span>
           <button onClick={openAdd} style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid rgba(0,0,0,0.15)', background: '#fff', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
         </div>
         <div style={{ padding: '0 8px 8px' }}>
@@ -133,8 +133,8 @@ export default function ContactsApp() {
               {[
                 { icon: '📧', label: 'Email', value: selected.email || '—' },
                 { icon: '📱', label: 'Phone', value: selected.phone || '—' },
-                { icon: '🏢', label: 'Company', value: selected.company || '—' },
-                { icon: '📝', label: 'Notes', value: selected.notes || '—' },
+                { icon: '🏢', label: '公司', value: selected.company || '—' },
+                { icon: '📝', label: '备注', value: selected.notes || '—' },
               ].map(item => (
                 <div key={item.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
                   <span style={{ fontSize: 16, width: 24 }}>{item.icon}</span>
@@ -160,7 +160,7 @@ export default function ContactsApp() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
           onClick={e => { if (e.currentTarget === e.target) setShowAdd(false) }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 24, width: 380, boxShadow: '0 24px 80px rgba(0,0,0,0.3)' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', marginBottom: 16 }}>New Contact</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1d1d1f', marginBottom: 16 }}>新建联系人</div>
             {fields.map((f, i) => (
               <div key={f.key} style={{ marginBottom: 10 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', marginBottom: 4 }}>{f.label}</div>

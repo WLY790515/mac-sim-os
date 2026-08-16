@@ -99,12 +99,12 @@ export default function MissionControl({ windows, onWindowClick, onCloseWindow, 
       padding: '56px 32px 96px',
     }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: 16, textAlign: 'center', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-        Mission Control
+        任务控制中心
       </div>
       <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-start', overflow: 'auto' }}>
         {windows.length === 0 ? (
           <div style={{ width: '100%', textAlign: 'center', padding: 60, color: 'rgba(255,255,255,0.3)', fontSize: 15 }}>
-            No windows open
+            暂无打开的窗口
           </div>
         ) : windows.map((win, i) => {
           const offset = offsets[win.id]

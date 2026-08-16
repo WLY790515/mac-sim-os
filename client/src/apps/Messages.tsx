@@ -18,25 +18,25 @@ interface Conversation {
 }
 
 const CONTACTS = [
-  { id: '1', contact: 'Sarah Chen', avatar: '👩‍💼' },
-  { id: '2', contact: 'Mike Johnson', avatar: '👨‍💻' },
-  { id: '3', contact: 'Lisa Park', avatar: '👩‍🎨' },
-  { id: '4', contact: 'David Kim', avatar: '🧑‍🔬' },
-  { id: '5', contact: 'Emma Wilson', avatar: '👩‍🏫' },
-  { id: '6', contact: 'Alex Rivera', avatar: '👨‍🍳' },
+  { id: '1', contact: '陈小红', avatar: '👩‍💼' },
+  { id: '2', contact: '王大明', avatar: '👨‍💻' },
+  { id: '3', contact: '李美丽', avatar: '👩‍🎨' },
+  { id: '4', contact: '张伟', avatar: '🧑‍🔬' },
+  { id: '5', contact: '刘芳', avatar: '👩‍🏫' },
+  { id: '6', contact: '赵强', avatar: '👨‍🍳' },
 ]
 
 const AUTO_REPLIES = [
-  "That's awesome! 😄",
-  "I'll check and get back to you.",
-  "Sounds good to me!",
-  "Can you send me the details?",
-  "Haha, that's funny 😂",
-  "I was just thinking the same thing!",
-  "Let me know when you're free.",
-  "Sure, I'm on it! 🚀",
-  "Thanks for letting me know!",
-  "No worries at all.",
+  "太棒了！😄",
+  "我看看，稍后回复你。",
+  "听起来不错！",
+  "能把详细信息发我吗？",
+  "哈哈，真有趣 😂",
+  "我也正这么想呢！",
+  "有空联系你。",
+  "好的，马上处理！🚀",
+  "感谢告知！",
+  "没关系。",
 ]
 
 export default function MessagesApp() {
@@ -113,7 +113,7 @@ export default function MessagesApp() {
           <div style={{ fontSize: 11, fontWeight: 600, color: '#86868b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Messages</div>
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', opacity: 0.4, fontSize: 13 }}>🔍</span>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search"
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索对话"
               style={{ width: '100%', padding: '6px 10px 6px 32px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.04)', fontSize: 13, outline: 'none' }} />
           </div>
         </div>

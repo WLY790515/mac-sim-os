@@ -13,7 +13,7 @@ hello()
 
 export default function EditorApp() {
   const [content, setContent] = useState(DEFAULT_CODE)
-  const [fileName, setFileName] = useState('untitled.js')
+  const [fileName, setFileName] = useState('未命名.js')
   const [modified, setModified] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const lineCount = content.split('\n').length
