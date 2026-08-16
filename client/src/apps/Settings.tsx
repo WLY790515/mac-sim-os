@@ -193,17 +193,15 @@ export default function SettingsApp() {
         </div>
         {/* Nav */}
         <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
-          {NAV.map(item => (
-            <div
-              key={item.id}
-              onClick={() => setSection(item.id)}
-              style={{
-                padding: '7px 12px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-                background: section === item.id ? 'rgba(0,122,255,0.12)' : 'transparent',
-                color: section === item.id ? '#007aff' : '#1d1d1f',
-                borderRadius: 6, margin: '1px 4px', fontWeight: section === item.id ? 500 : 400,
-                transition: 'background 0.15s, color 0.15s',
-              }}
+          {NAV.map((item, i) => (
+            <div key={item.id} onClick={() => setSection(item.id)} style={{
+              padding: '8px 12px', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2,
+              background: section === item.id ? 'rgba(0,122,255,0.1)' : 'transparent',
+              transition: 'background 0.15s ease, transform 0.12s cubic-bezier(0.34,1.56,0.64,1)',
+              animation: `rowSlideIn 0.2s ease-out ${i * 0.04}s both`,
+            }}
+              onMouseEnter={e => {(e.currentTarget as HTMLDivElement).style.background = section === item.id ? 'rgba(0,122,255,0.15)' : 'rgba(0,0,0,0.04)'}}
+              onMouseLeave={e => {(e.currentTarget as HTMLDivElement).style.background = section === item.id ? 'rgba(0,122,255,0.1)' : 'transparent'}}
             >
               <span style={{ fontSize: 16 }}>{item.icon}</span>
               <span style={{ flex: 1 }}>{item.label}</span>

@@ -11,7 +11,7 @@ const DOCK_HEIGHT = 70
 const BASE_ICON_SIZE = 44
 const MAX_SCALE = 1.6
 const MAGNIFICATION_RANGE = 90
-const TRANSITION_MS = 150
+const TRANSITION_MS = 200
 const HIDDEN_KEY = 'macsimos-dock-hidden'
 
 function getHiddenApps(): string[] {
@@ -33,16 +33,16 @@ export default function Dock({ apps }: DockProps) {
   const { state, dispatch } = useApp()
   const [mouseX, setMouseX] = useState<number | null>(null)
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; appId: string } | null>(null)
+  const [ctxMenuVisible, setCtxMenuVisible] = useState(false)
+  const [clickedId, setClickedId] = useState<string | null>(null)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const iconRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const iconCenters = useRef<number[]>([])
   const hiddenRef = useRef<string[]>(getHiddenApps())
   const [glassEnabled, setGlassEnabled] = useState(state.glassEnabled)
 
-  // Sync glassEnabled from store
-  useEffect(() => {
-    setGlassEnabled(state.glassEnabled)
-  }, [state.glassEnabled])
+  useEffect(() => { setGlassEnabled(state.glassEnabled) }, [state.glassEnabled])
 
   const visibleApps = apps.filter(a => !hiddenRef.current.includes(a.id))
 
@@ -53,7 +53,6 @@ export default function Dock({ apps }: DockProps) {
     const containerRect = container.getBoundingClientRect()
     iconRectsRef.current.clear()
 
-    // Measure app icons
     visibleApps.forEach((app, i) => {
       const el = iconRefs.current.get(app.id)
       if (el) {
@@ -65,7 +64,6 @@ export default function Dock({ apps }: DockProps) {
       }
     })
 
-    // Measure trash icon (always at the end, after separator)
     const trashEl = iconRefs.current.get('trash')
     if (trashEl) {
       const tr = trashEl.getBoundingClientRect()
@@ -88,10 +86,8 @@ export default function Dock({ apps }: DockProps) {
     }
   }, [measureIcons])
 
-  // Total items = visible apps + 1 (trash)
   const totalItems = visibleApps.length + 1
 
-  // Hide separator if nothing on right side
   const hasRightApps = visibleApps.length > 0
 
   const getScale = useCallback((itemIndex: number): number => {
@@ -100,7 +96,8 @@ export default function Dock({ apps }: DockProps) {
     if (centerX < 0) return 1
     const distance = Math.abs(mouseX - centerX)
     if (distance > MAGNIFICATION_RANGE) return 1
-    const gauss = Math.exp(-(distance * distance) / (2 * (MAGNIFICATION_RANGE * 0.4) ** 2))
+    // Smoother gaussian with sharper peak
+    const gauss = Math.exp(-(distance * distance) / (2 * (MAGNIFICATION_RANGE * 0.35) ** 2))
     return 1 + (MAX_SCALE - 1) * gauss
   }, [mouseX])
 
@@ -113,10 +110,16 @@ export default function Dock({ apps }: DockProps) {
 
   const handleMouseLeave = useCallback(() => {
     setMouseX(null)
+    setHoveredId(null)
     setCtxMenu(null)
+    setCtxMenuVisible(false)
   }, [])
 
   const handleDockClick = useCallback((app: AppDefinition) => {
+    // Click bounce effect
+    setClickedId(app.id)
+    setTimeout(() => setClickedId(null), 200)
+
     const appWindows = state.windows.filter((w: WindowState) => w.appId === app.id)
     if (appWindows.length === 0) {
       dispatch({ type: 'OPEN_WINDOW', app })
@@ -133,19 +136,21 @@ export default function Dock({ apps }: DockProps) {
   }, [dispatch, state.windows])
 
   const handleTrashClick = useCallback(() => {
+    setClickedId('trash')
+    setTimeout(() => setClickedId(null), 200)
     dispatch({ type: 'TOGGLE_TRASH' })
   }, [dispatch])
 
-  // Right-click handler
   const handleIconContextMenu = useCallback((e: React.MouseEvent, app: AppDefinition) => {
     e.preventDefault()
     e.stopPropagation()
     const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
     setCtxMenu({ x: rect.left, y: rect.bottom + 4, appId: app.id })
+    setCtxMenuVisible(true)
   }, [])
 
   useEffect(() => {
-    const click = () => setCtxMenu(null)
+    const click = () => { setCtxMenu(null); setCtxMenuVisible(false) }
     document.addEventListener('click', click)
     return () => document.removeEventListener('click', click)
   }, [])
@@ -157,6 +162,7 @@ export default function Dock({ apps }: DockProps) {
     hiddenRef.current = next
     setHiddenApps(next)
     setCtxMenu(null)
+    setCtxMenuVisible(false)
     if (hiddenRef.current.includes(appId)) {
       state.windows.filter((w: WindowState) => w.appId === appId).forEach((w: WindowState) => {
         dispatch({ type: 'CLOSE_WINDOW', id: w.id })
@@ -194,43 +200,60 @@ export default function Dock({ apps }: DockProps) {
           zIndex: 9998,
           boxShadow: '0 10px 40px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3)',
           padding: '6px 6px 4px',
+          transition: 'background 0.3s ease, border 0.3s ease',
         }}
       >
         {visibleApps.map((app, index) => {
           const scale = getScale(index)
           const isMagnified = scale > 1.05
           const isActive = state.windows.some((w: WindowState) => w.appId === app.id && !w.isMinimized)
-          const dotIndex = index + (isActive ? 1 : 0)
+          const isClicked = clickedId === app.id
+          const isHovered = hoveredId === app.id
           return (
             <div
               key={app.id}
               ref={(el) => { if (el) iconRefs.current.set(app.id, el) }}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, position: 'relative' }}
+              onMouseEnter={() => setHoveredId(app.id)}
+              onMouseLeave={() => setHoveredId(null)}
             >
-              {isActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.8)', marginBottom: 2, flexShrink: 0 }} />}
+              {/* Active indicator with pulse */}
+              {isActive && (
+                <div style={{
+                  width: 4, height: 4, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.85)',
+                  marginBottom: 2, flexShrink: 0,
+                  boxShadow: '0 0 6px rgba(255,255,255,0.5)',
+                  animation: 'dockPulse 2s ease-in-out infinite',
+                }} />
+              )}
               <button
                 onClick={() => handleDockClick(app)}
                 onContextMenu={(e) => handleIconContextMenu(e, app)}
                 style={{
                   display: 'block',
-                  transform: `scale(${scale})`,
+                  transform: `scale(${scale}${isClicked ? ', 0.9' : ''})`,
                   transformOrigin: 'bottom center',
                   transition: `transform ${TRANSITION_MS}ms cubic-bezier(0.34, 1.56, 0.64, 1)`,
                   padding: 0,
                   cursor: 'pointer',
                   background: 'none',
                   border: 'none',
+                  outline: 'none',
                 }}
               >
                 <img src={app.icon} alt={app.name} style={{
                   width: BASE_ICON_SIZE,
                   height: BASE_ICON_SIZE,
-                  borderRadius: 12,
+                  borderRadius: isMagnified ? 14 : 12,
                   display: 'block',
                   filter: isMagnified
-                    ? 'drop-shadow(0 6px 20px rgba(0,0,0,0.45))'
-                    : 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))',
-                  transition: 'filter 0.2s ease',
+                    ? 'drop-shadow(0 8px 24px rgba(0,0,0,0.5)) brightness(1.05)'
+                    : isHovered
+                      ? 'drop-shadow(0 4px 14px rgba(0,0,0,0.3))'
+                      : 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))',
+                  transition: 'filter 0.25s ease, border-radius 0.2s ease, transform 0.15s ease',
+                  transform: isClicked ? 'scale(0.92)' : 'scale(1)',
                 }}
                   onError={(e) => {
                     const img = e.target as HTMLImageElement
@@ -244,12 +267,18 @@ export default function Dock({ apps }: DockProps) {
           )
         })}
         {hasRightApps && (
-          <div style={{ width: 1, height: DOCK_HEIGHT - 20, background: 'rgba(0,0,0,0.2)', margin: '0 6px 6px', borderRadius: 1, flexShrink: 0 }} />
+          <div style={{
+            width: 1, height: DOCK_HEIGHT - 20,
+            background: 'rgba(0,0,0,0.2)', margin: '0 6px 6px', borderRadius: 1, flexShrink: 0,
+            transition: 'background 0.3s ease',
+          }} />
         )}
         <div
           ref={(el) => { if (el) iconRectsRef.current.set('trash', el.getBoundingClientRect()) }}
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, cursor: 'pointer' }}
           onClick={handleTrashClick}
+          onMouseEnter={() => setHoveredId('trash')}
+          onMouseLeave={() => setHoveredId(null)}
         >
           <div style={{
             transform: `scale(${getScale(visibleApps.length)})`,
@@ -261,7 +290,11 @@ export default function Dock({ apps }: DockProps) {
               height: BASE_ICON_SIZE,
               borderRadius: 12,
               display: 'block',
-              filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))',
+              filter: hoveredId === 'trash'
+                ? 'drop-shadow(0 4px 14px rgba(0,0,0,0.3))'
+                : 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))',
+              transition: 'filter 0.25s ease, transform 0.15s ease',
+              transform: clickedId === 'trash' ? 'scale(0.9)' : 'scale(1)',
             }}
               onError={(e) => {
                 const img = e.target as HTMLImageElement
@@ -274,7 +307,7 @@ export default function Dock({ apps }: DockProps) {
         </div>
       </div>
 
-      {/* Context menu */}
+      {/* Context menu with slide-in animation */}
       {ctxMenu && ctxApp && (
         <div
           style={{
@@ -290,22 +323,43 @@ export default function Dock({ apps }: DockProps) {
             border: '1px solid rgba(255,255,255,0.12)',
             padding: '4px 0',
             minWidth: 180,
+            animation: ctxMenuVisible ? 'ctxMenuSlideIn 0.15s ease-out' : 'none',
           }}
-          onClick={() => setCtxMenu(null)}
+          onClick={() => { setCtxMenu(null); setCtxMenuVisible(false) }}
         >
-          <div style={{ padding: '6px 12px 6px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 2 }}>
+          <div style={{
+            padding: '6px 12px 6px',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            marginBottom: 2,
+            animation: ctxMenuVisible ? 'ctxMenuItemFade 0.12s ease-out' : 'none',
+          }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{ctxApp.name}</span>
           </div>
-          <button onClick={() => handleDockClick(ctxApp)}
+          <button onClick={() => { handleDockClick(ctxApp); setCtxMenu(null) }}
             style={menuBtnStyle}>
-            {state.windows.some(w => w.appId === ctxApp.id && !w.isMinimized) ? '🗕 Minimize' : '🗖 Open'}
+            {state.windows.some((w: WindowState) => w.appId === ctxApp.id && !w.isMinimized) ? '🗕 最小化' : '🗖 打开'}
           </button>
           <button onClick={() => toggleHidden(ctxApp.id)}
             style={{ ...menuBtnStyle, color: hiddenRef.current.includes(ctxApp.id) ? '#ff6b6b' : '#fff' }}>
-            {hiddenRef.current.includes(ctxApp.id) ? '👁️ Show in Dock' : '🚫 Hide from Dock'}
+            {hiddenRef.current.includes(ctxApp.id) ? '👁️ 显示在 Dock' : '🚫 从 Dock 隐藏'}
           </button>
         </div>
       )}
+
+      <style>{`
+        @keyframes dockPulse {
+          0%, 100% { opacity: 0.85; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.3); }
+        }
+        @keyframes ctxMenuSlideIn {
+          from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes ctxMenuItemFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </>
   )
 }
@@ -313,4 +367,5 @@ export default function Dock({ apps }: DockProps) {
 const menuBtnStyle: React.CSSProperties = {
   display: 'block', width: '100%', padding: '5px 12px', border: 'none', background: 'transparent',
   textAlign: 'left', fontSize: 12, color: '#fff', cursor: 'pointer', borderRadius: 4,
+  transition: 'background 0.1s ease',
 }

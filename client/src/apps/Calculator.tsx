@@ -87,18 +87,24 @@ export default function CalculatorApp() {
           const isOp = ['+', '−', '×', '÷', '='].includes(btn)
           const isFunc = ['AC', '±', '%'].includes(btn)
           const isActive = state.operator === btn && state.waitingForOperand && !['='].includes(btn)
+          const [pressed, setPressed] = useState(false)
           return (
-            <button key={btn} onClick={() => handlePress(btn)} style={{
-              height: 56, borderRadius: 28, fontSize: 22, fontWeight: 400,
-              fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-              border: 'none', cursor: 'pointer', transition: 'filter 0.1s',
-              background: isOp
-                ? (isActive ? '#fff' : '#ff9f0a')
-                : isFunc
-                ? '#a5a5a5'
-                : '#505050',
-              color: isOp ? '#fff' : isFunc ? '#000' : '#fff',
-            }}>
+            <button key={btn} onClick={() => { setPressed(true); handlePress(btn); setTimeout(() => setPressed(false), 120) }}
+              onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)} onMouseLeave={() => setPressed(false)}
+              style={{
+                height: 56, borderRadius: 28, fontSize: 22, fontWeight: 400,
+                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                border: 'none', cursor: 'pointer', transition: 'transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.1s, box-shadow 0.1s',
+                background: isOp
+                  ? (isActive ? '#fff' : '#ff9f0a')
+                  : isFunc
+                  ? '#a5a5a5'
+                  : '#505050',
+                color: isOp ? '#fff' : isFunc ? '#000' : '#fff',
+                transform: pressed ? 'scale(0.88)' : 'scale(1)',
+                boxShadow: pressed ? 'inset 0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.2)',
+                filter: isOp && isActive ? 'brightness(1.1)' : 'none',
+              }}>
               {btn}
             </button>
           )

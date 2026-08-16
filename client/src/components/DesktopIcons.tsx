@@ -98,10 +98,13 @@ export default function DesktopIcons({ apps }: DesktopIconsProps) {
               padding: '6px 8px', borderRadius: 8,
               cursor: draggingId === app.id ? 'grabbing' : 'grab',
               pointerEvents: 'auto',
-              transition: draggingId === app.id ? 'none' : 'left 0.2s ease, top 0.2s ease',
+              transition: draggingId === app.id ? 'none' : 'left 0.2s ease, top 0.2s ease, opacity 0.15s ease',
               userSelect: 'none',
               opacity: draggingId && draggingId !== app.id ? 0.4 : 1,
+              animation: `deskFade 0.4s ease-out ${index * 0.05}s both`,
             }}
+            onMouseEnter={e => {(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'}}
+            onMouseLeave={e => {(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'}}
           >
             <img
               src={app.icon} alt={app.name}
@@ -109,12 +112,16 @@ export default function DesktopIcons({ apps }: DesktopIconsProps) {
                 width: 52, height: 52, borderRadius: 12,
                 display: 'block', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))',
                 pointerEvents: 'none',
+                transition: 'filter 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+                transform: 'scale(1)',
               }}
+              onMouseEnter={e => {(e.currentTarget as HTMLImageElement).style.transform = 'scale(1.08)'}}
+              onMouseLeave={e => {(e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'}}
               onError={(e) => {
                 const img = e.target as HTMLImageElement
                 img.style.display = 'none'
                 const parent = img.parentElement
-                if (parent) parent.innerHTML = `<div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.3);pointer-events:none">${app.name[0]}</div>`
+                if (parent) parent.innerHTML = `<div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.3);pointer-events:none;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1)">${app.name[0]}</div>`
               }}
             />
             <span style={{
@@ -122,6 +129,7 @@ export default function DesktopIcons({ apps }: DesktopIconsProps) {
               textShadow: '0 1px 4px rgba(0,0,0,0.8)', lineHeight: 1.2,
               maxWidth: 72, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               pointerEvents: 'none',
+              transition: 'text-shadow 0.15s ease',
             }}>{app.name}</span>
           </div>
         )

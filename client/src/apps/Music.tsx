@@ -136,13 +136,36 @@ export default function MusicApp() {
           {/* Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, justifyContent: 'center' }}>
             <button onClick={() => setShuffle(!shuffle)} style={{ fontSize: 16, background: 'none', border: 'none', cursor: 'pointer', color: shuffle ? '#ff2d55' : '#8e8e93', padding: 4 }}>{'⇄'}</button>
-            <button onClick={handlePrev} style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 4 }}>{'⏮'}</button>
+            <button onClick={handlePrev} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 22, color: '#fff', padding: 4, opacity: 0.85,
+              transition: 'transform 0.15s ease, opacity 0.15s',
+            }}
+              onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.15)'} }
+              onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'} }
+            >{'⏮'}</button>
             <button onClick={() => setIsPlaying(!isPlaying)} style={{
-              width: 36, height: 36, borderRadius: '50%', background: '#ff2d55',
-              border: 'none', cursor: 'pointer', fontSize: 16, color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{isPlaying ? '⏸' : '▶'}</button>
-            <button onClick={handleNext} style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 4 }}>{'⏭'}</button>
+              width: 52, height: 52, borderRadius: '50%',
+              background: isPlaying ? 'linear-gradient(135deg,#ff2d55,#e02040)' : 'linear-gradient(135deg,#fff,#e8e8ed)',
+              border: 'none', cursor: 'pointer',
+              fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: isPlaying ? '0 4px 20px rgba(255,45,85,0.4)' : '0 4px 20px rgba(255,255,255,0.2)',
+              transition: 'transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease',
+              color: isPlaying ? '#fff' : '#1d1d1f',
+              animation: isPlaying ? 'pulse 1.5s ease-in-out infinite' : 'none',
+            }}
+              onMouseDown={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.92)'} }
+              onMouseUp={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'} }
+              onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'} }
+            >{isPlaying ? '⏸' : '▶'}</button>
+            <button onClick={handleNext} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 22, color: '#fff', padding: 4, opacity: 0.85,
+              transition: 'transform 0.15s ease, opacity 0.15s',
+            }}
+              onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.15)'} }
+              onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'} }
+            >{'⏭'}</button>
             <button onClick={() => setRepeat(repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off')} style={{ fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: repeat !== 'off' ? '#ff2d55' : '#8e8e93', padding: 4 }}>{'↺'}</button>
           </div>
 

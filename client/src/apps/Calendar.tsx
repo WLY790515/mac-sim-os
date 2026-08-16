@@ -195,8 +195,16 @@ export default function CalendarApp() {
             </div>
             <div style={{ fontSize: 11, color: '#86868b', marginTop: 6 }}>已选择：{new Date(selectedDate + 'T00:00:00').toLocaleDateString('zh-CN', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button onClick={() => setShowAdd(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', cursor: 'pointer', fontSize: 13 }}>取消</button>
-              <button onClick={handleAddEvent} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>保存</button>
+              <button onClick={() => setShowAdd(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', cursor: 'pointer', fontSize: 13, transition: 'transform 0.12s cubic-bezier(0.34,1.56,0.64,1), background 0.15s' }}
+                onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)'}}
+                onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'}}
+              >取消</button>
+              <button onClick={handleAddEvent} style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', background: '#007aff', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, transition: 'transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s', boxShadow: '0 2px 8px rgba(0,122,255,0.3)' }}
+                onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(0,122,255,0.4)'}}
+                onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,122,255,0.3)'}}
+                onMouseDown={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.96)'}}
+                onMouseUp={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)'}}
+              >保存</button>
             </div>
           </div>
         </div>

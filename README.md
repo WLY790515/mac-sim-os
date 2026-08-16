@@ -17,18 +17,16 @@
   <img src="assets/desktop_final.png" alt="mac-sim-os Desktop" width="800" />
 </div>
 
-👉 **[点击体验完整交互式预览](https://wly790515.github.io/mac-sim-os/preview.html)** · [返回仓库主页](https://github.com/WLY790515/mac-sim-os)
+👉 [点击体验完整交互式预览](https://wly790515.github.io/mac-sim-os/preview.html) · [返回仓库主页](https://github.com/WLY790515/mac-sim-os)
 
----
+👉 [点击加入qq频道【mac-sim-os】](https://pd.qq.com/s/fk41xxrg8?b=9)
 
-## 截图
-
-| 桌面主界面 | Finder 文件管理 |
-|---|---|
+| 桌面主界面                        | Finder 文件管理                    |
+| --------------------------------- | ---------------------------------- |
 | ![桌面](assets/desktop_final.png) | ![Finder](assets/finder_final.png) |
 
-| Terminal 终端 | 计算器 |
-|---|---|
+| Terminal 终端                | 计算器                                     |
+| ---------------------------- | ------------------------------------------ |
 | ![Terminal](assets/boot.png) | ![Calculator](assets/calculator_final.png) |
 
 ---
@@ -36,6 +34,7 @@
 ## ✨ 已实现功能
 
 ### 桌面系统
+
 - **macOS 风格窗口管理**：拖拽移动、边缘缩放、z-index 层级管理
 - **红绿灯按钮动画**：关闭（红）→ 居中缩小淡出；最小化（黄）→ easeIn 吸入 Dock；最大化（绿）→ easeOut 平滑展开
 - **启动屏**：Apple Logo + 进度条，加载完成后自动切换桌面
@@ -43,39 +42,42 @@
 - **桌面**：壁纸渐变、桌面图标双击打开应用
 
 ### Dock 栏
+
 - **悬停弹跳动画**：CSS `transform: scale()` + cubic-bezier 弹性曲线
 - **图标位置共享**：通过 ref 系统同步 Dock 图标与窗口动画坐标
 
 ### 内置应用（19 个）
 
-| 应用 | 功能 |
-|------|------|
-| **Terminal** | 多标签终端，支持 ls/cd/cat/mkdir/touch/rm/cp/mv/echo/head/tail/find/grep/tree/neofetch 等命令，Tab 自动补全，命令历史，工作目录独立追踪 |
-| **Finder** | IndexedDB 虚拟文件系统浏览，支持图标/列表视图切换、侧边栏导航、面包屑路径、右键菜单、文件上传/下载、重命名、搜索 |
-| **Safari** | 浏览器模拟，地址栏导航、历史记录前进/后退、书签面板 |
-| **Clock** | 模拟时钟（60fps 平滑指针）、世界时钟、秒表、闹钟 |
-| **Calculator** | 标准计算器 |
-| **Notes** | 简易备忘录 |
-| **Music** | 音乐播放器 |
-| **Calendar** | 日历视图 |
-| **Contacts** | 联系人管理 |
-| **Messages** | 消息应用 |
-| **Mail** | 邮件应用 |
-| **Photos** | 照片浏览器 |
-| **Maps** | 地图应用 |
-| **Weather** | 天气应用 |
-| **Videos** | 视频播放器 |
-| **FaceTime** | 视频通话应用 |
-| **Reminders** | 提醒事项 |
-| **Editor** | 文本编辑器（行号、Tab 缩进） |
-| **Settings** | 系统设置（主题切换、壁纸选择） |
+| 应用           | 功能                                                                                                                                    |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Terminal**   | 多标签终端，支持 ls/cd/cat/mkdir/touch/rm/cp/mv/echo/head/tail/find/grep/tree/neofetch 等命令，Tab 自动补全，命令历史，工作目录独立追踪 |
+| **Finder**     | IndexedDB 虚拟文件系统浏览，支持图标/列表视图切换、侧边栏导航、面包屑路径、右键菜单、文件上传/下载、重命名、搜索                        |
+| **Safari**     | 浏览器模拟，地址栏导航、历史记录前进/后退、书签面板                                                                                     |
+| **Clock**      | 模拟时钟（60fps 平滑指针）、世界时钟、秒表、闹钟                                                                                        |
+| **Calculator** | 标准计算器                                                                                                                              |
+| **Notes**      | 简易备忘录                                                                                                                              |
+| **Music**      | 音乐播放器                                                                                                                              |
+| **Calendar**   | 日历视图                                                                                                                                |
+| **Contacts**   | 联系人管理                                                                                                                              |
+| **Messages**   | 消息应用                                                                                                                                |
+| **Mail**       | 邮件应用                                                                                                                                |
+| **Photos**     | 照片浏览器                                                                                                                              |
+| **Maps**       | 地图应用                                                                                                                                |
+| **Weather**    | 天气应用                                                                                                                                |
+| **Videos**     | 视频播放器                                                                                                                              |
+| **FaceTime**   | 视频通话应用                                                                                                                            |
+| **Reminders**  | 提醒事项                                                                                                                                |
+| **Editor**     | 文本编辑器（行号、Tab 缩进）                                                                                                            |
+| **Settings**   | 系统设置（主题切换、壁纸选择）                                                                                                          |
 
 ### 特效系统
+
 - **Spotlight 全局搜索**：Cmd+Space 呼出，搜索所有应用
 - **Notification Center**：通知中心面板
 - **Control Center**：控制中心（WiFi/蓝牙/亮度/音量快捷开关）
 
 ### 键盘快捷键
+
 - **Cmd+W** — 关闭当前窗口
 - **Cmd+M** — 最小化窗口
 - **Cmd+Q** — 退出所有指定应用的窗口
@@ -84,6 +86,7 @@
 - **Cmd+←/→/↑/↓** — 边缘分屏（左/右/上/下）
 
 ### 部署支持
+
 - **GitHub Pages** 自动部署（CI/CD 流水线）
 - **Railway** 一键部署（Caddy 静态服务）
 - **Electron 桌面客户端**：本地打包为 .exe/.dmg 可执行文件
@@ -93,12 +96,14 @@
 ## 🗺️ 规划路线图
 
 ### Phase 1 — 核心体验优化 ✅ 已完成
+
 - [x] macOS 风格窗口动画（easeOut/easeIn cubic 曲线）
 - [x] 窗口阴影层级优化（激活/非激活双层阴影）
 - [x] 多窗口管理改进（拖拽贴边分屏 + Cmd+方向键快速分屏）
 - [x] 键盘快捷键增强（Cmd+W 关闭、Cmd+M 最小化、Cmd+Q 退出所有窗口）
 
 ### Phase 2 — 文件系统增强 ✅ 已完成
+
 - [x] IndexedDB 持久化虚拟文件系统（真实文件上传/下载）
 - [x] Finder 完整右键菜单（打开/下载/重命名/删除/新建文件夹/新建文件）
 - [x] 文件夹嵌套导航 + 面包屑路径
@@ -106,6 +111,7 @@
 - [x] 搜索栏过滤文件名
 
 ### Phase 3 — 终端系统 ✅ 已完成
+
 - [x] 多标签页终端 UI（新建/关闭/切换标签）
 - [x] 完整文件系统命令集（ls/cd/cat/mkdir/rm/cp/mv/touch/echo）
 - [x] 高级命令（head/tail/find/grep/tree/neofetch）
@@ -115,6 +121,7 @@
 - [x] Ctrl+C 中断、Ctrl+L 清屏
 
 ### Phase 4 — 原生应用完整化 ✅ 已完成
+
 - [x] Notes 笔记：IndexedDB 持久化，新建/编辑/删除/颜色选择，Tab 缩进
 - [x] Calendar 日历：添加/删除事件，颜色标记，右侧详情面板，弹窗新增
 - [x] Clock 时钟：秒表真正计时（performance.now），倒计时定时器，闹钟系统（定时弹窗），世界时钟
@@ -125,6 +132,7 @@
 - [x] Mission Control：右上角 ⊞ 按钮，窗口缩略图动画，点击聚焦/关闭，Escape 退出
 
 ### Phase 5 — 移动端 i-sim-os 🔄 进行中
+
 - [ ] React Native 移动端适配（iOS / Android）
 - [ ] 触摸手势支持（拖动、缩放、长按菜单）
 - [ ] 移动端 Dock 栏重构（底部固定 + 滑出式菜单）
@@ -143,16 +151,16 @@
 
 ## 🛠️ 技术栈
 
-| 层 | 技术 |
-|----|------|
-| 前端框架 | React 18 + TypeScript 5 + Vite 5 |
-| 状态管理 | React `useReducer` + Context API（自定义） |
-| 文件系统 | IndexedDB（自定义 Wrapper，`filesystem.ts`） |
+| 层           | 技术                                                        |
+| ------------ | ----------------------------------------------------------- |
+| 前端框架     | React 18 + TypeScript 5 + Vite 5                            |
+| 状态管理     | React `useReducer` + Context API（自定义）                  |
+| 文件系统     | IndexedDB（自定义 Wrapper，`filesystem.ts`）                |
 | 终端命令引擎 | 自研虚拟文件系统命令层（`terminal.ts`），完全对接 IndexedDB |
-| 桌面客户端 | Electron（可选） |
-| 静态服务 | Caddy（Railway 部署） |
-| CI/CD | GitHub Actions（自动部署到 GitHub Pages） |
-| 包管理 | npm |
+| 桌面客户端   | Electron（可选）                                            |
+| 静态服务     | Caddy（Railway 部署）                                       |
+| CI/CD        | GitHub Actions（自动部署到 GitHub Pages）                   |
+| 包管理       | npm                                                         |
 
 ---
 
@@ -205,6 +213,7 @@ vibeos/
 ## 🚀 快速开始
 
 ### 环境要求
+
 - Node.js ≥ 18
 
 ### 安装依赖

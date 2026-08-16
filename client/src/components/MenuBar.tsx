@@ -103,6 +103,7 @@ export default function MenuBar({ apps }: MenuBarProps) {
           backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
           border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0 0 10px 10px',
           boxShadow: '0 10px 40px rgba(0,0,0,0.5)', padding: '4px 0',
+          animation: 'dropEnter 0.15s ease-out',
         }} onClick={closeAllMenus}>
           <div style={{ padding: '5px 14px', fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>系统</div>
           {[
@@ -125,7 +126,7 @@ export default function MenuBar({ apps }: MenuBarProps) {
             }},
           ].map((item, i) => item.type === 'divider'
             ? <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '3px 0' }} />
-            : <button key={i} onClick={item.action} style={menuBtnStyle}>{item.label}</button>
+            : <button key={i} onClick={item.action} style={{ ...menuBtnStyle, animation: `menuStagger 0.1s ease-out ${i * 0.03}s both` }}>{item.label}</button>
           )}
           <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '3px 0' }} />
           <button onClick={() => { localStorage.clear(); location.reload() }} style={{ ...menuBtnStyle, color: '#ff6b6b' }}>重新启动系统…</button>
@@ -140,27 +141,40 @@ export default function MenuBar({ apps }: MenuBarProps) {
           backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
           border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10,
           boxShadow: '0 10px 40px rgba(0,0,0,0.5)', padding: 12,
+          animation: 'dropEnter 0.15s ease-out',
         }} onClick={e => e.stopPropagation()}>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>壁纸</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            {WALLPAPERS.map(wp => (
+            {WALLPAPERS.map((wp, i) => (
               <button key={wp.id} onClick={() => { dispatch({ type: 'SET_WALLPAPER', wallpaper: wp.id }); setWallpaperPicker(false) }}
                 style={{
                   background: wp.color, borderRadius: 8, height: 56, border: state.wallpaper === wp.id ? '2px solid #007aff' : '2px solid transparent',
-                  cursor: 'pointer', position: 'relative', overflow: 'hidden',
-                }}>
-                {state.wallpaper === wp.id && <div style={{ position: 'absolute', bottom: 3, right: 4, fontSize: 10, color: '#fff' }}>✓</div>}
+                  cursor: 'pointer', position: 'relative', overflow: 'hidden', transition: 'transform 0.15s cubic-bezier(0.34,1.56,0.64,1), border-color 0.2s',
+                  animation: `menuStagger 0.12s ease-out ${i * 0.04}s both`,
+                }}
+                onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.04)'}}
+                onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'}}
+              >
+                {state.wallpaper === wp.id && <div style={{ position: 'absolute', bottom: 3, right: 4, fontSize: 10, color: '#fff', animation: 'saveCheck 0.3s ease-out' }}>✓</div>}
                 <div style={{ position: 'absolute', bottom: 3, left: 4, fontSize: 9, color: 'rgba(255,255,255,0.7)' }}>{wp.label}</div>
               </button>
             ))}
           </div>
           <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
             <input id="custom-wp-url" placeholder="自定义图片 URL…"
-              style={{ flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', color: '#fff', fontSize: 11, outline: 'none' }} />
+              style={{ flex: 1, padding: '5px 8px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', color: '#fff', fontSize: 11, outline: 'none', transition: 'border-color 0.2s' }}
+              onFocus={e => {(e.target as HTMLInputElement).style.borderColor = 'rgba(0,122,255,0.6)'}}
+              onBlur={e => {(e.target as HTMLInputElement).style.borderColor = 'rgba(255,255,255,0.15)'}}
+            />
             <button onClick={() => {
               const url = (document.getElementById('custom-wp-url') as HTMLInputElement)?.value.trim()
               if (url) { dispatch({ type: 'SET_WALLPAPER', wallpaper: `url(${url})` }); setWallpaperPicker(false) }
-            }} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#007aff', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>应用</button>
+            }} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#007aff', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, transition: 'transform 0.12s cubic-bezier(0.34,1.56,0.64,1), background 0.15s', animation: 'menuStagger 0.12s ease-out 0.28s both' }}
+              onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'}}
+              onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'}}
+              onMouseDown={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'}}
+              onMouseUp={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'}}
+            >应用</button>
           </div>
         </div>
       )}
@@ -174,11 +188,12 @@ export default function MenuBar({ apps }: MenuBarProps) {
           background: 'rgba(30,30,30,0.92)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
           border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)', padding: '4px 0',
+          animation: 'dropEnter 0.15s ease-out',
         }} onClick={closeAllMenus}>
           {getMenuItems(activeMenu, apps, dispatch, state, setHelpOpen).map((item, i) =>
             item.type === 'divider'
               ? <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '3px 0' }} />
-              : <button key={i} onClick={() => { item.action?.(); closeAllMenus() }} style={menuBtnStyle}>{item.label}{item.shortcut ? <span style={{ float: 'right', opacity: 0.4, fontSize: 11 }}>{item.shortcut}</span> : ''}</button>
+              : <button key={i} onClick={() => { item.action?.(); closeAllMenus() }} style={{ ...menuBtnStyle, animation: `menuStagger 0.1s ease-out ${i * 0.03}s both` }}>{item.label}{item.shortcut ? <span style={{ float: 'right', opacity: 0.4, fontSize: 11 }}>{item.shortcut}</span> : ''}</button>
           )}
         </div>
       )}
@@ -190,6 +205,7 @@ export default function MenuBar({ apps }: MenuBarProps) {
           background: 'rgba(30,30,30,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
           border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12,
           boxShadow: '0 10px 40px rgba(0,0,0,0.5)', padding: 0, overflow: 'hidden',
+          animation: 'dropEnter 0.2s ease-out',
         }} onClick={e => e.stopPropagation()}>
           <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3))', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
@@ -312,5 +328,5 @@ const btnStyle: React.CSSProperties = {
 const menuBtnStyle: React.CSSProperties = {
   display: 'block', width: '100%', padding: '4px 14px', border: 'none',
   background: 'transparent', textAlign: 'left', fontSize: 13, color: '#fff',
-  cursor: 'default', borderRadius: 4,
+  cursor: 'default', borderRadius: 4, transition: 'background 0.1s ease',
 }

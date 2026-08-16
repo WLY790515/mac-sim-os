@@ -165,16 +165,32 @@ export default function MessagesApp() {
                   No messages yet.<br />Start the conversation!
                 </div>
               )}
-              {selected.messages.map((m, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: m.sent ? 'flex-end' : 'flex-start' }}>
+              {selected.messages.map((msg, i) => (
+                <div key={msg.id} style={{
+                  display: 'flex', justifyContent: !msg.sent ? 'flex-start' : 'flex-end',
+                  marginBottom: i < selected.messages.length - 1 ? 4 : 0,
+                  animation: `bubbleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.04}s both`,
+                }}>
+                  {!msg.sent && (
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#e8d4f5,#c4b5fd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, marginRight: 6, flexShrink: 0, marginTop: 2 }}>{selected.avatar}</div>
+                  )}
                   <div style={{
-                    maxWidth: '75%', padding: '8px 14px', borderRadius: m.sent ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                    background: m.sent ? 'linear-gradient(135deg,#007aff,#005ec4)' : 'rgba(0,0,0,0.08)',
-                    color: m.sent ? '#fff' : '#1d1d1f', fontSize: 14, lineHeight: 1.4,
-                  }}>
-                    {m.text}
-                    <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: m.sent ? 'right' : 'left' }}>{m.time}</div>
+                    maxWidth: '75%', padding: '8px 14px',
+                    borderRadius: !msg.sent ? '18px 18px 18px 4px' : '18px 18px 4px 18px',
+                    background: !msg.sent ? '#f0f0f2' : 'linear-gradient(135deg,#007aff,#005ec4)',
+                    color: !msg.sent ? '#1d1d1f' : '#fff', fontSize: 14, lineHeight: 1.4,
+                    boxShadow: !msg.sent ? '0 1px 4px rgba(0,0,0,0.06)' : '0 2px 12px rgba(0,122,255,0.3)',
+                    transition: 'transform 0.15s ease',
+                  }}
+                    onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.transform = 'scale(1.03)')}
+                    onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.transform = 'scale(1)')}
+                  >
+                    {msg.text}
+                    <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: msg.sent ? 'right' : 'left' }}>{msg.time}</div>
                   </div>
+                  {msg.sent && (
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#667eea,#764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, marginLeft: 6, flexShrink: 0, marginTop: 2 }}>👤</div>
+                  )}
                 </div>
               ))}
               <div ref={bottomRef} />

@@ -8,6 +8,8 @@ interface AnimationState {
   isMinimizing: boolean
   isMaximizing: boolean
   isClosing: boolean
+  fromOpacity: number
+  toOpacity: number
 }
 
 interface WindowProps {
@@ -39,13 +41,12 @@ export default function Window({
   const dragInfoRef = useRef({ active: false, startX: 0, startY: 0, origX: 0, origY: 0 })
   const resizeInfoRef = useRef({ active: false, startX: 0, startY: 0, origW: 0, origH: 0 })
 
-  // Track previous state — captured BEFORE effects run so restore/maximize can read stale value
   const wasMinimizedRef = useRef(win.isMinimized)
   const wasMaximizedRef = useRef(win.isMaximized)
   const lastAnimTypeRef = useRef<string | null>(null)
   const closeRef = useRef<(() => void) | null>(null)
-  // Track whether a maximize animation is currently running
   const isAnimatingMaxRef = useRef(false)
+  const [titleBarHue, setTitleBarHue] = useState(0)
 
   useLayoutEffect(() => { onMoveRef.current = onMove }, [onMove])
   useLayoutEffect(() => { onResizeRef.current = onResize }, [onResize])
@@ -55,9 +56,14 @@ export default function Window({
   useLayoutEffect(() => { onMaximizeRef.current = onMaximize }, [onMaximize])
   useLayoutEffect(() => { getDockIconRectRef.current = getDockIconRect }, [getDockIconRect])
 
-  // Always keep stale-state refs up to date
   useLayoutEffect(() => { wasMinimizedRef.current = win.isMinimized }, [win.isMinimized])
   useLayoutEffect(() => { wasMaximizedRef.current = win.isMaximized }, [win.isMaximized])
+
+  // Title bar color shift on focus change
+  useEffect(() => {
+    const t = setTimeout(() => setTitleBarHue(isActive ? 1 : 0), 10)
+    return () => clearTimeout(t)
+  }, [isActive])
 
   useEffect(() => {
     function onDocMouseMove(e: MouseEvent) {
@@ -95,6 +101,8 @@ export default function Window({
   const ANIM_MS = 480
   const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3)
   const easeInCubic = (t: number): number => t * t * t
+  const easeOutBack = (t: number): number => { const c1 = 1.70158; const c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2) }
+  const easeInOutQuart = (t: number): number => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2
 
   const animRef = useRef<AnimationState | null>(null)
   const rafRef = useRef<number>(0)
@@ -102,6 +110,9 @@ export default function Window({
   const [renderPos, setRenderPos] = useState(() => ({
     x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1,
   }))
+  const [isFocused, setIsFocused] = useState(false)
+
+  useEffect(() => { setIsFocused(isActive) }, [isActive])
 
   const finishAnim = useCallback((a: AnimationState) => {
     cancelAnimationFrame(rafRef.current)
@@ -127,13 +138,18 @@ export default function Window({
     if (!a) return
     const now = performance.now()
     const rawT = Math.min(1, (now - a.elapsed) / ANIM_MS)
-    const easedT = a.isMinimizing ? easeInCubic(rawT) : easeOutCubic(rawT)
+    const easedT = a.isMinimizing ? easeInCubic(rawT) : a.isClosing ? easeInOutQuart(rawT) : easeOutCubic(rawT)
+
+    const curOpacity = a.fromOpacity !== undefined
+      ? a.fromOpacity + (a.toOpacity - a.fromOpacity) * easedT
+      : 1
+
     const cur = {
       x: a.fromX + (a.toX - a.fromX) * easedT,
       y: a.fromY + (a.toY - a.fromY) * easedT,
       w: a.fromW + (a.toW - a.fromW) * easedT,
       h: a.fromH + (a.toH - a.fromH) * easedT,
-      opacity: 1,
+      opacity: curOpacity,
     }
     renderRef.current = cur
     setRenderPos(cur)
@@ -163,6 +179,8 @@ export default function Window({
         isMinimizing: false,
         isMaximizing: false,
         isClosing: true,
+        fromOpacity: 1,
+        toOpacity: 0,
       }
       renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
       setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
@@ -170,7 +188,7 @@ export default function Window({
     }
   }, [win.x, win.y, win.width, win.height, startAnim])
 
-  // ── Open animation ─────────────────────────────────────────────────
+  // ── Open animation (spring-like overshoot) ─────────────────────────
   useLayoutEffect(() => {
     if (animRef.current) return
     if (win.isMinimized) return
@@ -188,9 +206,11 @@ export default function Window({
       isMinimizing: false,
       isMaximizing: false,
       isClosing: false,
+      fromOpacity: 0,
+      toOpacity: 1,
     }
-    renderRef.current = { x: dockX, y: dockY, w: 0, h: 0, opacity: 1 }
-    setRenderPos({ x: dockX, y: dockY, w: 0, h: 0, opacity: 1 })
+    renderRef.current = { x: dockX, y: dockY, w: 0, h: 0, opacity: 0 }
+    setRenderPos({ x: dockX, y: dockY, w: 0, h: 0, opacity: 0 })
     startAnim(a)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.id, win.isMinimized])
@@ -214,6 +234,8 @@ export default function Window({
       isMinimizing: true,
       isMaximizing: false,
       isClosing: false,
+      fromOpacity: 1,
+      toOpacity: 0.3,
     }
     renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
     setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
@@ -236,6 +258,8 @@ export default function Window({
       isMinimizing: false,
       isMaximizing: true,
       isClosing: false,
+      fromOpacity: 1,
+      toOpacity: 1,
     }
     renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
     setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
@@ -261,6 +285,8 @@ export default function Window({
       isMinimizing: false,
       isMaximizing: false,
       isClosing: false,
+      fromOpacity: 1,
+      toOpacity: 1,
     }
     renderRef.current = { x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 }
     setRenderPos({ x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 })
@@ -288,35 +314,39 @@ export default function Window({
   const dispH = isAnimating ? Math.max(1, renderPos.h) : win.height
   const dispOpacity = isAnimating ? renderPos.opacity : 1
 
+  // Active window subtle glow pulse
+  const glowPulse = isActive ? (Math.sin(Date.now() / 800) * 0.5 + 0.5) : 0
+
   const closeBg = '#ff5f57', closeActive = '#e0443e'
   const minBg = '#febc2e', minActive = '#e0a020'
   const maxBg = '#28c840', maxActive = '#1fa832'
 
   function TrafficLights() {
     const [pressed, setPressed] = useState<string | null>(null)
-    const btnStyle = (bg: string, active: string): React.CSSProperties => ({
+    const btnStyle = (bg: string, active: string, scale: number): React.CSSProperties => ({
       width: 12, height: 12, borderRadius: '50%',
       background: pressed ? active : bg,
       cursor: 'pointer', border: 'none', padding: 0,
-      transition: 'background 0.08s',
-      boxShadow: 'inset 0 0.5px 1px rgba(255,255,255,0.25)',
+      transition: 'background 0.1s ease, transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      boxShadow: pressed ? 'inset 0 1px 3px rgba(0,0,0,0.3)' : 'inset 0 0.5px 1px rgba(255,255,255,0.25)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 0, lineHeight: 1, pointerEvents: 'auto',
+      transform: `scale(${scale})`,
     })
     return (
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
         <button
-          style={btnStyle(closeBg, closeActive)}
+          style={btnStyle(closeBg, closeActive, pressed === 'c' ? 0.85 : 1)}
           onMouseDown={e => { e.stopPropagation(); setPressed('c'); closeRef.current?.() }}
           onMouseUp={() => setPressed(null)} onMouseLeave={() => setPressed(null)}
         />
         <button
-          style={btnStyle(minBg, minActive)}
+          style={btnStyle(minBg, minActive, pressed === 'm' ? 0.85 : 1)}
           onMouseDown={e => { e.stopPropagation(); setPressed('m'); onMinimizeRef.current() }}
           onMouseUp={() => setPressed(null)} onMouseLeave={() => setPressed(null)}
         />
         <button
-          style={btnStyle(maxBg, maxActive)}
+          style={btnStyle(maxBg, maxActive, pressed === 'x' ? 0.85 : 1)}
           onMouseDown={e => { e.stopPropagation(); setPressed('x'); onMaximizeRef.current() }}
           onMouseUp={() => setPressed(null)} onMouseLeave={() => setPressed(null)}
         />
@@ -324,21 +354,45 @@ export default function Window({
     )
   }
 
+  const titleBarBg = isActive
+    ? `hsl(${220 + titleBarHue * 2}, 10%, ${93 + titleBarHue * 2}%)`
+    : '#d1d1d6'
+
   const titleBar = (
     <div
       onMouseDown={handleTitleBarMouseDown}
       style={{
-        height: 38, background: isActive ? '#ececed' : '#d1d1d6',
+        height: 38,
+        background: titleBarBg,
         display: 'flex', alignItems: 'center', padding: '0 12px',
         cursor: 'grab', flexShrink: 0, userSelect: 'none',
         borderBottom: '1px solid rgba(0,0,0,0.08)',
+        transition: 'background 0.2s ease',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Subtle shine line on title bar */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+        background: isActive ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)' : 'transparent',
+        transition: 'background 0.3s ease',
+      }} />
       <TrafficLights />
-      <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 500, color: '#1d1d1f', opacity: 0.8, pointerEvents: 'none' }}>{win.title}</span>
+      <span style={{
+        flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 500,
+        color: isActive ? '#1d1d1f' : '#6e6e73',
+        opacity: isActive ? 0.9 : 0.7,
+        pointerEvents: 'none',
+        transition: 'color 0.2s ease, opacity 0.2s ease',
+      }}>{win.title}</span>
       <div style={{ width: 52 }} />
     </div>
   )
+
+  const baseBoxShadow = isActive
+    ? `0 0 0 1px rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.28), 0 8px 20px rgba(0,0,0,0.14), 0 0 ${12 + glowPulse * 8}px rgba(0,122,255,${0.06 + glowPulse * 0.04})`
+    : '0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)'
 
   const baseStyle: React.CSSProperties = {
     position: 'absolute',
@@ -349,9 +403,8 @@ export default function Window({
     display: 'flex', flexDirection: 'column',
     border: '1px solid rgba(0,0,0,0.12)',
     pointerEvents: isAnimating ? 'none' : 'auto',
-    boxShadow: isActive
-      ? '0 0 0 1px rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.28), 0 8px 20px rgba(0,0,0,0.14)'
-      : '0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)',
+    boxShadow: baseBoxShadow,
+    transition: isActive ? 'box-shadow 0.3s ease' : 'none',
   }
 
   if (win.isMinimized && !isAnimating) return null

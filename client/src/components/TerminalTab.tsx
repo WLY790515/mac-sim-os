@@ -147,7 +147,7 @@ export default function TerminalTab({ tabId, cwd, onCwdChange, onExit }: Termina
     }}>
       <div style={{ flex: 1, overflow: 'auto', paddingBottom: 8 }}>
         {lines.map(line => (
-          <div key={line.id} style={{ marginBottom: 2 }}>
+          <div key={line.id} style={{ marginBottom: 2, animation: 'fadeIn 0.15s ease-out' }}>
             {line.input !== undefined && (
               <div style={{ color: '#7ee787', whiteSpace: 'pre-wrap' }}>{line.input}</div>
             )}
@@ -155,6 +155,7 @@ export default function TerminalTab({ tabId, cwd, onCwdChange, onExit }: Termina
               <div key={i} style={{
                 color: line.isError ? '#f48771' : '#d4d4d4',
                 whiteSpace: 'pre-wrap', lineHeight: 1.5,
+                animation: 'fadeIn 0.2s ease-out',
               }}>{text}</div>
             ))}
           </div>

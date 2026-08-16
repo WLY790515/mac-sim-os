@@ -146,11 +146,13 @@ export default function ClockApp() {
     <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-        {tabs.map(tab => (
+        {tabs.map((tab, i) => (
           <button key={tab.key} onClick={() => setMode(tab.key)} style={{
             flex: 1, padding: '10px 0', border: 'none', background: mode === tab.key ? 'rgba(255,255,255,0.1)' : 'transparent',
             color: mode === tab.key ? '#fff' : '#8e8e93', fontSize: 12, fontWeight: 500, cursor: 'pointer',
             borderBottom: mode === tab.key ? '2px solid #007aff' : '2px solid transparent',
+            transition: 'background 0.2s ease, color 0.2s ease, border-color 0.2s ease',
+            animation: `tabSlide 0.25s ease-out ${i * 0.06}s both`,
           }}>{tab.label}</button>
         ))}
       </div>
@@ -160,7 +162,7 @@ export default function ClockApp() {
         {mode === 'clock' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ fontSize: 64, fontWeight: 200, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ fontSize: 64, fontWeight: 200, color: '#fff', fontVariantNumeric: 'tabular-nums', animation: 'float 3s ease-in-out infinite' }}>
                 {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
               </div>
               <div style={{ fontSize: 14, color: '#8e8e93', marginTop: 8 }}>
@@ -189,11 +191,24 @@ export default function ClockApp() {
               <button onClick={sw.elapsed > 0 && !sw.isRunning ? resetStopwatch : toggleStopwatch} style={{
                 width: 72, height: 72, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 16, fontWeight: 500,
                 background: sw.isRunning ? 'rgba(255,59,48,0.8)' : 'rgba(52,199,89,0.8)', color: '#fff',
-              }}>{sw.elapsed > 0 && !sw.isRunning ? '重置' : sw.isRunning ? '停止' : '开始'}</button>
+                transition: 'transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease',
+                boxShadow: sw.isRunning ? '0 0 20px rgba(255,59,48,0.4)' : '0 0 20px rgba(52,199,89,0.3)',
+              }}
+                onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'}}
+                onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'}}
+                onMouseDown={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.94)'}}
+                onMouseUp={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'}}
+              >{sw.elapsed > 0 && !sw.isRunning ? '重置' : sw.isRunning ? '停止' : '开始'}</button>
               <button onClick={toggleStopwatch} style={{
                 width: 72, height: 72, borderRadius: '50%', border: 'none', cursor: 'pointer', fontSize: 16, fontWeight: 500,
                 background: 'rgba(255,255,255,0.15)', color: '#fff',
-              }}>{sw.isRunning ? 'Lap' : 'Resume'}</button>
+                transition: 'transform 0.15s cubic-bezier(0.34,1.56,0.64,1), background 0.15s',
+              }}
+                onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.25)'}}
+                onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.15)'}}
+                onMouseDown={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.94)'}}
+                onMouseUp={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)'}}
+              >{sw.isRunning ? 'Lap' : 'Resume'}</button>
             </div>
             {sw.elapsed > 0 && (
               <div style={{ fontSize: 12, color: '#8e8e93' }}>
@@ -216,9 +231,10 @@ export default function ClockApp() {
               </div>
             )}
             <div style={{
-              width: 200, height: 200, borderRadius: '50%', border: '4px solid rgba(255,255,255,0.1)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
-            }}>
+                width: 200, height: 200, borderRadius: '50%', border: '4px solid rgba(255,255,255,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+                transition: 'border-color 0.3s ease',
+              }}>
               {timer.isRunning && (
                 <svg style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }} width="200" height="200">
                   <circle cx="100" cy="100" r="94" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
@@ -280,11 +296,16 @@ export default function ClockApp() {
       {/* Alarm fired overlay */}
       {alarmFired && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(20px)' }}>
-          <div style={{ textAlign: 'center', color: '#fff' }}>
-            <div style={{ fontSize: 72, marginBottom: 16 }}>⏰</div>
+          <div style={{ textAlign: 'center', color: '#fff', animation: 'bounceIn 0.4s cubic-bezier(0.34,1.56,0.64,1)' }}>
+            <div style={{ fontSize: 72, marginBottom: 16, animation: 'shake 0.5s ease-in-out infinite' }}>⏰</div>
             <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Alarm!</div>
             <div style={{ fontSize: 16, color: '#8e8e93', marginBottom: 32 }}>It's {alarms.find(a => a.id === alarmFired)?.time || alarmTime}</div>
-            <button onClick={() => dismissAlarm(alarmFired)} style={{ padding: '12px 40px', borderRadius: 28, border: 'none', background: '#ff3b30', color: '#fff', fontSize: 16, fontWeight: 600, cursor: 'pointer' }}>Dismiss</button>
+            <button onClick={() => dismissAlarm(alarmFired)} style={{ padding: '12px 40px', borderRadius: 28, border: 'none', background: '#ff3b30', color: '#fff', fontSize: 16, fontWeight: 600, cursor: 'pointer', transition: 'transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s', boxShadow: '0 4px 20px rgba(255,59,48,0.5)' }}
+              onMouseEnter={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.06)'}}
+              onMouseLeave={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'}}
+              onMouseDown={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.95)'}}
+              onMouseUp={e => {(e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.06)'}}
+            >Dismiss</button>
           </div>
         </div>
       )}

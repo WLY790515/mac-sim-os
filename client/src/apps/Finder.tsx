@@ -149,7 +149,10 @@ export default function FinderApp() {
 
   const ContextMenuItem = ({ label, action, danger }: { label: string; action: () => void; danger?: boolean }) => (
     <div onClick={() => { action(); setCtxMenu(null) }}
-      style={{ padding: '6px 16px', fontSize: 13, cursor: 'pointer', color: danger ? '#ff3b30' : '#1d1d1f', display: 'flex', alignItems: 'center', gap: 8 }}>
+      style={{ padding: '6px 16px', fontSize: 13, cursor: 'pointer', color: danger ? '#ff3b30' : '#1d1d1f', display: 'flex', alignItems: 'center', gap: 8, transition: 'background 0.08s ease', animation: 'ctxMenuItemFade 0.1s ease-out' }}
+      onMouseEnter={e => {(e.currentTarget as HTMLDivElement).style.background = 'rgba(0,0,0,0.06)'}}
+      onMouseLeave={e => {(e.currentTarget as HTMLDivElement).style.background = 'transparent'}}
+    >
       {label}
     </div>
   )
@@ -266,12 +269,20 @@ export default function FinderApp() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredItems.map(node => (
+                  {filteredItems.map((node, i) => (
                     <tr key={node.id}
                       onClick={e => { e.stopPropagation(); setSelected(node.id) }}
                       onDoubleClick={() => handleNav(node)}
                       onContextMenu={e => handleContextMenu(e, node)}
-                      style={{ background: selected === node.id ? 'rgba(0,122,255,0.1)' : 'transparent', cursor: 'pointer', borderRadius: 4 }}>
+                      style={{
+                        background: selected === node.id ? 'rgba(0,122,255,0.1)' : 'transparent',
+                        cursor: 'pointer', borderRadius: 4,
+                        transition: 'background 0.1s ease, transform 0.12s cubic-bezier(0.34,1.56,0.64,1)',
+                        animation: `rowSlideIn 0.25s ease-out ${i * 0.03}s both`,
+                      }}
+                      onMouseEnter={e => {(e.currentTarget as HTMLTableRowElement).style.background = selected === node.id ? 'rgba(0,122,255,0.15)' : 'rgba(0,0,0,0.03)'}}
+                      onMouseLeave={e => {(e.currentTarget as HTMLTableRowElement).style.background = selected === node.id ? 'rgba(0,122,255,0.1)' : 'transparent'}}
+                    >
                       <td style={{ padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
                         {renameId === node.id
                           ? <RenameInput id={node.id} value={renameValue} onSubmit={v => { handleRename(node.id, v); setRenameId(null) }} />

@@ -84,13 +84,18 @@ export default function NotesApp() {
               No notes yet.<br />Click + to create one.
             </div>
           )}
-          {notes.map(note => (
+          {notes.map((note, i) => (
             <div key={note.id} onClick={() => { setSelectedId(note.id); setEditing(false) }}
               style={{
                 padding: '8px 10px', borderRadius: 8, marginBottom: 2, cursor: 'pointer',
                 background: selectedId === note.id ? 'rgba(0,122,255,0.1)' : 'transparent',
                 borderLeft: selectedId === note.id ? '3px solid #007aff' : '3px solid transparent',
-              }}>
+                transition: 'background 0.15s ease, transform 0.15s cubic-bezier(0.34,1.56,0.64,1), border-color 0.2s ease',
+                animation: `rowSlideIn 0.25s ease-out ${i * 0.04}s both`,
+              }}
+              onMouseEnter={e => {(e.currentTarget as HTMLDivElement).style.background = selectedId === note.id ? 'rgba(0,122,255,0.15)' : 'rgba(0,0,0,0.04)'}}
+              onMouseLeave={e => {(e.currentTarget as HTMLDivElement).style.background = selectedId === note.id ? 'rgba(0,122,255,0.1)' : 'transparent'}}
+            >
               <div style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {note.title || '无标题'}
               </div>

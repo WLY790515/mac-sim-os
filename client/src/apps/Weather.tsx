@@ -99,8 +99,14 @@ export default function WeatherApp() {
 
   if (loading) {
     return (
-      <div style={{ width: '100%', height: '100%', background: 'linear-gradient(180deg,#4a90d9 0%,#87ceeb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 18, color: '#fff' }}>Loading weather data...</div>
+      <div style={{ width: '100%', height: '100%', background: 'linear-gradient(180deg,#4a90d9 0%,#87ceeb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
+        <div style={{ fontSize: 64, animation: 'spin 3s linear infinite' }}>🌤️</div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(255,255,255,0.7)', animation: `typingDot 1s ease-in-out ${i * 0.2}s infinite` }} />
+          ))}
+        </div>
+        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>正在获取天气数据…</div>
       </div>
     )
   }
@@ -153,8 +159,8 @@ export default function WeatherApp() {
         </div>
 
         {/* Hourly */}
-        <div style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: 14, padding: '14px 16px', border: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 10 }}>Hourly Forecast</div>
+        <div style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: 14, padding: '14px 16px', border: '1px solid rgba(255,255,255,0.2)', marginBottom: 12, animation: 'cellPop 0.4s ease-out 0.2s both' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 10 }}>小时预报</div>
           <div style={{ display: 'flex', gap: 16, overflowX: 'auto' }}>
             {city.hourly.map(h => (
               <div key={h.time} style={{ textAlign: 'center', flexShrink: 0 }}>
