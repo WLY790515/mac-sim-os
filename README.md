@@ -2,6 +2,8 @@
 
 > 在浏览器中运行的 macOS 风格操作系统模拟器
 
+<!-- last-deployed: 2026-08-16 -->
+
 ![React](https://img.shields.io/badge/React-18-61dafb?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Node](https://img.shields.io/badge/Node-%3E%3D18-339935)
