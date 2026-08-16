@@ -1,44 +1,25 @@
-import React from 'react'
-
-const wallpapers = [
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
-  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80',
-  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80',
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80',
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80',
-]
+import React, { useEffect, useRef } from 'react'
 
 export default function DesktopBackground() {
-  const [seed] = React.useState(() => Math.floor(Math.random() * wallpapers.length))
-
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 0,
-        overflow: 'hidden',
-      }}
-    >
-      <img
-        src={wallpapers[seed]}
-        alt="desktop wallpaper"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-        }}
-      />
-      {/* Subtle gradient overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(135deg, rgba(0,0,0,0.05) 0%, transparent 50%, rgba(0,0,0,0.08) 100%)',
-          pointerEvents: 'none',
-        }}
-      />
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 0,
+      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #533483 100%)',
+    }}>
+      {/* Subtle aurora-like light streaks */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `
+          radial-gradient(ellipse 90% 50% at 20% 20%, rgba(59,130,246,0.15) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.12) 0%, transparent 50%),
+          radial-gradient(ellipse 40% 30% at 60% 30%, rgba(236,72,153,0.08) 0%, transparent 40%)
+        `,
+      }} />
+      {/* Soft light rays from top-left */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(160deg, rgba(255,255,255,0.06) 0%, transparent 50%)',
+      }} />
     </div>
   )
 }

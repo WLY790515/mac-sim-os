@@ -7,11 +7,15 @@ interface DockProps {
   apps: AppDefinition[]
 }
 
-const DOCK_HEIGHT = 72
+const DOCK_HEIGHT = 70
 const BASE_ICON_SIZE = 44
-const MAX_SCALE = 1.8
-const MAGNIFICATION_RANGE = 120
-const TRANSITION_MS = 120
+const MAX_SCALE = 1.6
+const MAGNIFICATION_RANGE = 90
+const TRANSITION_MS = 150
+
+function iconPath(name: string): string {
+  return `/icons/${name}`
+}
 
 export default function Dock({ apps }: DockProps) {
   const { state, dispatch } = useApp()
@@ -47,7 +51,7 @@ export default function Dock({ apps }: DockProps) {
   useEffect(() => {
     measureIcons()
     window.addEventListener('resize', measureIcons)
-    const t = setTimeout(measureIcons, 200)
+    const t = setTimeout(measureIcons, 300)
     return () => {
       window.removeEventListener('resize', measureIcons)
       clearTimeout(t)
@@ -60,7 +64,7 @@ export default function Dock({ apps }: DockProps) {
     if (centerX < 0) return 1
     const distance = Math.abs(mouseX - centerX)
     if (distance > MAGNIFICATION_RANGE) return 1
-    const gauss = Math.exp(-(distance * distance) / (2 * (MAGNIFICATION_RANGE * 0.38) ** 2))
+    const gauss = Math.exp(-(distance * distance) / (2 * (MAGNIFICATION_RANGE * 0.4) ** 2))
     return 1 + (MAX_SCALE - 1) * gauss
   }, [mouseX])
 
@@ -74,10 +78,6 @@ export default function Dock({ apps }: DockProps) {
   const handleMouseLeave = useCallback(() => {
     setMouseX(null)
   }, [])
-
-  const isOpen = useCallback((appId: string) => {
-    return state.windows.some((w: WindowState) => w.appId === appId && !w.isMinimized)
-  }, [state.windows])
 
   const handleDockClick = useCallback((app: AppDefinition) => {
     const appWindows = state.windows.filter((w: WindowState) => w.appId === app.id)
@@ -94,6 +94,10 @@ export default function Dock({ apps }: DockProps) {
     }
   }, [dispatch, state.windows])
 
+  const handleTrashClick = useCallback(() => {
+    dispatch({ type: 'TOGGLE_TRASH' })
+  }, [dispatch])
+
   return (
     <div
       ref={containerRef}
@@ -101,32 +105,33 @@ export default function Dock({ apps }: DockProps) {
       onMouseLeave={handleMouseLeave}
       style={{
         position: 'fixed',
-        bottom: 8,
+        bottom: 10,
         left: '50%',
         transform: 'translateX(-50%)',
         height: DOCK_HEIGHT,
-        background: 'rgba(255,255,255,0.4)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.35)',
-        borderRadius: 16,
+        background: 'rgba(255,255,255,0.35)',
+        backdropFilter: 'blur(24px) saturate(200%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+        border: '1px solid rgba(255,255,255,0.4)',
+        borderRadius: 20,
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',
-        gap: 1,
+        gap: 3,
         zIndex: 9998,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-        padding: '6px 3px 4px',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3)',
+        padding: '6px 6px 4px',
       }}
     >
       {apps.map((app, index) => {
         const scale = getScale(index)
         const isMagnified = scale > 1.05
+        const isActive = state.windows.some((w: WindowState) => w.appId === app.id && !w.isMinimized)
         return (
           <div
             key={app.id}
             ref={(el) => { if (el) iconRefs.current.set(app.id, el) }}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}
           >
             <button
               onClick={() => handleDockClick(app)}
@@ -144,42 +149,57 @@ export default function Dock({ apps }: DockProps) {
               <img src={app.icon} alt={app.name} style={{
                 width: BASE_ICON_SIZE,
                 height: BASE_ICON_SIZE,
-                borderRadius: 10,
+                borderRadius: 12,
                 display: 'block',
                 filter: isMagnified
-                  ? 'drop-shadow(0 4px 16px rgba(0,0,0,0.4))'
-                  : 'drop-shadow(0 2px 8px rgba(0,0,0,0.25))',
+                  ? 'drop-shadow(0 6px 20px rgba(0,0,0,0.45))'
+                  : 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))',
                 transition: 'filter 0.2s ease',
               }}
                 onError={(e) => {
                   const img = e.target as HTMLImageElement
                   img.style.display = 'none'
                   const parent = img.parentElement
-                  if (parent) parent.innerHTML = `<div style="width:${BASE_ICON_SIZE}px;height:${BASE_ICON_SIZE}px;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:20px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.3)">${app.name[0]}</div>`
+                  if (parent) parent.innerHTML = `<div style="width:${BASE_ICON_SIZE}px;height:${BASE_ICON_SIZE}px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.3)">${app.name[0]}</div>`
                 }}
               />
             </button>
+            {isActive && (
+              <div style={{
+                width: 4, height: 4, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.9)',
+                marginTop: 3,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              }} />
+            )}
           </div>
         )
       })}
-      <div style={{ width: 1, height: DOCK_HEIGHT - 20, background: 'rgba(0,0,0,0.15)', margin: '0 4px 4px', borderRadius: 1, flexShrink: 0 }} />
+      <div style={{ width: 1, height: DOCK_HEIGHT - 20, background: 'rgba(0,0,0,0.2)', margin: '0 6px 6px', borderRadius: 1, flexShrink: 0 }} />
       <div
         ref={(el) => { if (el) iconRefs.current.set('trash', el) }}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, cursor: 'pointer' }}
+        onClick={handleTrashClick}
       >
         <div style={{
           transform: `scale(${getScale(apps.length)})`,
           transformOrigin: 'bottom center',
           transition: `transform ${TRANSITION_MS}ms cubic-bezier(0.34, 1.56, 0.64, 1)`,
-          cursor: 'pointer',
         }}>
-          <img src="/icons/trash.png" alt="Trash" style={{
+          <img src={iconPath('trash')} alt="Trash" style={{
             width: BASE_ICON_SIZE,
             height: BASE_ICON_SIZE,
-            borderRadius: 10,
+            borderRadius: 12,
             display: 'block',
-            filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.25))',
-          }} />
+            filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))',
+          }}
+            onError={(e) => {
+              const img = e.target as HTMLImageElement
+              img.style.display = 'none'
+              const parent = img.parentElement
+              if (parent) parent.innerHTML = `<div style="width:${BASE_ICON_SIZE}px;height:${BASE_ICON_SIZE}px;border-radius:12px;background:linear-gradient(135deg,#555,#333);display:flex;align-items:center;justify-content:center;color:white;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.3)">🗑</div>`
+            }}
+          />
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import type { AppDefinition } from './types'
 import Desktop from './components/Desktop'
+import BootScreen from './components/BootScreen'
 import { AppRegistryProvider } from './contexts/AppRegistry.context'
 import { AppProvider } from './stores/app.store'
 
@@ -9,9 +10,12 @@ interface AppProps {
 }
 
 export default function App({ apps }: AppProps) {
+  const [bootDone, setBootDone] = useState(false)
+
   return (
     <AppProvider>
       <AppRegistryProvider value={{ apps }}>
+        {!bootDone && <BootScreen onComplete={() => setBootDone(true)} />}
         <Desktop />
         {/* Shared SVG filters to avoid duplicate ID issues when multiple clocks are open */}
         <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden="true">

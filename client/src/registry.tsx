@@ -23,8 +23,8 @@ import FaceTimeApp from './apps/FaceTime'
 import VideosApp from './apps/Videos'
 
 // ─── Icon Paths ────────────────────────────────────────────────
-const icon = (name: string) => `${import.meta.env.BASE_URL}icons/${name}.png`
-const iconSvg = (name: string) => `${import.meta.env.BASE_URL}icons/${name}.svg`
+const icon = (name: string) => import.meta.env.BASE_URL + 'icons/' + name + '.png'
+const iconSvg = (name: string) => import.meta.env.BASE_URL + 'icons/' + name + '.svg'
 
 // ─── App Registry (ordered like macOS Dock) ──────────────────
 export const apps: AppDefinition[] = [
