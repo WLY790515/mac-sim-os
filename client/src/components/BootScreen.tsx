@@ -29,18 +29,10 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
     return () => clearInterval(id)
   }, [])
 
-  // Animate progress bar 0→100% — slower pace (~4.5s total)
+  // Animate progress bar 0→100% — ~3.3s total with easing
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) { clearInterval(interval); return 100 }
-        const remaining = 100 - prev
-        // Decelerating curve: slow down significantly near the end
-        const step = Math.max(1, Math.floor(remaining * 0.025))
-        return Math.min(100, prev + step)
-      })
-    }, 45)
-    return () => clearInterval(interval)
+    const targets = [5, 10, 16, 22, 29, 36, 43, 51, 59, 67, 74, 81, 87, 92, 96, 100]
+    targets.forEach((val, i) => setTimeout(() => setProgress(val), i * 200))
   }, [])
 
   useEffect(() => {
