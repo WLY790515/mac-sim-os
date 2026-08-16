@@ -100,6 +100,7 @@ function reducer(state: State, action: Action): State {
     case 'SET_FILES': return { ...state, desktopFiles: action.files }
     case 'TOGGLE_THEME': return { ...state, theme: state.theme === 'light' ? 'dark' : 'light' }
     case 'SET_THEME': return { ...state, theme: action.theme }
+    case 'SET_WALLPAPER': return { ...state, wallpaper: action.wallpaper }
     case 'SET_MENU_BAR_APP': return { ...state, menuBarActiveApp: action.appId }
     default: return state
   }
