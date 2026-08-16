@@ -15,9 +15,10 @@ export default function App({ apps }: AppProps) {
   return (
     <AppProvider>
       <AppRegistryProvider value={{ apps }}>
+        {/* BootScreen uses position:fixed with z-index 99999 — covers everything during boot */}
         {!bootDone && <BootScreen onComplete={() => setBootDone(true)} />}
+        {/* Desktop only becomes interactive after boot completes */}
         <Desktop />
-        {/* Shared SVG filters to avoid duplicate ID issues when multiple clocks are open */}
         <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden="true">
           <defs>
             <filter id="clock-shadow" x="-20%" y="-20%" width="140%" height="140%">
