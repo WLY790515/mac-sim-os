@@ -5,7 +5,8 @@ interface AnimationState {
   fromX: number; fromY: number; fromW: number; fromH: number
   toX: number; toY: number; toW: number; toH: number
   elapsed: number
-  isMinimizing: boolean
+  isMinimizing: boolean   // true = sucking into dock, false = exploding from dock
+  isMaximizing: boolean   // true = expanding to fill screen
 }
 
 interface WindowProps {
@@ -36,7 +37,6 @@ export default function Window({
   const dragInfoRef = useRef({ active: false, startX: 0, startY: 0, origX: 0, origY: 0 })
   const resizeInfoRef = useRef({ active: false, startX: 0, startY: 0, origW: 0, origH: 0 })
 
-  // Keep refs fresh without re-registering document listeners
   useEffect(() => { onMoveRef.current = onMove }, [onMove])
   useEffect(() => { onResizeRef.current = onResize }, [onResize])
   useEffect(() => { onFocusRef.current = onFocus }, [onFocus])
@@ -45,7 +45,7 @@ export default function Window({
   useEffect(() => { onMaximizeRef.current = onMaximize }, [onMaximize])
   useEffect(() => { getDockIconRectRef.current = getDockIconRect }, [getDockIconRect])
 
-  // Single drag/resize handler — registered once
+  // Single drag/resize handler
   useEffect(() => {
     function onDocMouseMove(e: MouseEvent) {
       if (dragInfoRef.current.active) {
@@ -72,8 +72,8 @@ export default function Window({
     }
   }, [])
 
-  // ── macOS-style window animation engine ──────────────────────────────
-  const ANIM_MS = 380
+  // ── Black hole animation engine ───────────────────────────────────
+  const ANIM_MS = 420
   const animRef = useRef<AnimationState | null>(null)
   const rafRef = useRef<number>(0)
   const renderRef = useRef({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
@@ -85,7 +85,6 @@ export default function Window({
     animRef.current = null
     const r = renderRef.current
     if (a?.isMinimizing) {
-      // Hide window after minimize animation — it will be filtered out by WindowManager
       r.opacity = 0
     } else {
       onMoveRef.current(r.x, r.y)
@@ -95,25 +94,51 @@ export default function Window({
     setRenderPos({ ...r })
   }, [])
 
-  // Animation loop
+  // Spring-like "black hole" easing:
+  // - Opening/Expanding (out): easeOutBack — explosive start, slight overshoot then settle
+  // - Closing/Sucking (in): easeInBack — accelerates into the vortex
+  // Formula: easeOutBack(t) = 1 + 2.70158*(t-1)^3 + 1.70158*(t-1)^2
+  //          easeInBack(t)  = t^3 - 1.70158*t^2 + 0.70158*t^3
+  const easeOutBack = (t: number): number => {
+    const c1 = 1.70158
+    const c3 = c1 + 1
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2)
+  }
+
+  const easeInBack = (t: number): number => {
+    const c1 = 1.70158
+    const c3 = c1 + 1
+    return c3 * t * t * t - c1 * t * t
+  }
+
   const tick = useCallback(() => {
     const a = animRef.current
     if (!a) return
     const now = performance.now()
-    const t = Math.min(1, (now - a.elapsed) / ANIM_MS)
-    const e = easeOutCubic(t)
+    const rawT = Math.min(1, (now - a.elapsed) / ANIM_MS)
 
+    // Choose easing based on animation direction
+    // OUT (opening/maximizing): explosive burst from origin
+    // IN (minimizing/restoring): gravitational suction toward target
+    const easedT = a.isMinimizing ? easeInBack(rawT) : easeOutBack(rawT)
+
+    // Scale factor: 0→1 for open, 1→0 for minimize
+    const scale = a.isMinimizing
+      ? 1 - easedT
+      : easedT
+
+    // Position interpolation
     const cur = {
-      x: a.fromX + (a.toX - a.fromX) * e,
-      y: a.fromY + (a.toY - a.fromY) * e,
-      w: a.fromW + (a.toW - a.fromW) * e,
-      h: a.fromH + (a.toH - a.fromH) * e,
-      opacity: a.isMinimizing ? (1 - easeInCubic(t)) : 1,
+      x: a.fromX + (a.toX - a.fromX) * easedT,
+      y: a.fromY + (a.toY - a.fromY) * easedT,
+      w: a.fromW + (a.toW - a.fromW) * scale,
+      h: a.fromH + (a.toH - a.fromH) * scale,
+      opacity: a.isMinimizing ? (1 - easedT * easedT) : 1,
     }
     renderRef.current = cur
     setRenderPos(cur)
 
-    if (t >= 1) {
+    if (rawT >= 1) {
       finishAnim()
     } else {
       rafRef.current = requestAnimationFrame(tick)
@@ -126,60 +151,56 @@ export default function Window({
     rafRef.current = requestAnimationFrame(tick)
   }, [tick])
 
-  // ── Trigger animations based on state changes ───────────────────────
+  // ── Trigger animations ─────────────────────────────────────────────
   useEffect(() => {
-    if (animRef.current) return
-    if (!win.isMinimized) {
-      // Open animation: scale up from dock icon position
-      const rect = getDockIconRectRef.current?.()
-      const dockX = rect ? rect.left + rect.width / 2 - win.width / 2 : win.x
-      const dockY = rect ? rect.top + rect.height / 2 - win.height / 2 : win.y
-      startAnim({
-        fromX: dockX, fromY: dockY, fromW: 0, fromH: 0,
-        toX: win.x, toY: win.y, toW: win.width, toH: win.height,
-        elapsed: performance.now(),
-        isMinimizing: false,
-      })
-    }
+    if (animRef.current || win.isMinimized) return
+    const rect = getDockIconRectRef.current?.()
+    const dockX = rect ? rect.left + rect.width / 2 - win.width / 2 : win.x
+    const dockY = rect ? rect.top + rect.height / 2 - win.height / 2 : win.y
+    startAnim({
+      fromX: dockX, fromY: dockY, fromW: 0, fromH: 0,
+      toX: win.x, toY: win.y, toW: win.width, toH: win.height,
+      elapsed: performance.now(),
+      isMinimizing: false,
+      isMaximizing: false,
+    })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.id])
 
   useEffect(() => {
-    if (animRef.current) return
-    if (win.isMinimized) {
-      // Minimize animation: shrink toward dock icon
-      const rect = getDockIconRectRef.current?.()
-      const targetX = rect ? rect.left : win.x
-      const targetY = rect ? rect.top + rect.height : win.y
-      const targetW = rect ? Math.max(rect.width, 44) : 44
-      const targetH = rect ? Math.max(rect.height, 10) : 10
-      startAnim({
-        fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
-        toX: targetX, toY: targetY, toW: targetW, toH: targetH,
-        elapsed: performance.now(),
-        isMinimizing: true,
-      })
-    }
+    if (animRef.current || !win.isMinimized) return
+    const rect = getDockIconRectRef.current?.()
+    const targetX = rect ? rect.left : win.x
+    const targetY = rect ? rect.top + rect.height : win.y
+    const targetW = rect ? Math.max(rect.width, 44) : 44
+    const targetH = rect ? Math.max(rect.height, 10) : 10
+    startAnim({
+      fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
+      toX: targetX, toY: targetY, toW: targetW, toH: targetH,
+      elapsed: performance.now(),
+      isMinimizing: true,
+      isMaximizing: false,
+    })
   }, [win.isMinimized])
 
   useEffect(() => {
     if (animRef.current) return
     if (win.isMaximized) {
-      // Maximize animation: expand to full screen
       startAnim({
         fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
         toX: 0, toY: 25, toW: window.innerWidth, toH: window.innerHeight - 25 - 80,
         elapsed: performance.now(),
         isMinimizing: false,
+        isMaximizing: true,
       })
     } else if (win.wasPosition) {
-      // Restore animation: shrink back to saved position
       startAnim({
         fromX: 0, fromY: 25, fromW: window.innerWidth, fromH: window.innerHeight - 25 - 80,
         toX: win.wasPosition.x, toY: win.wasPosition.y,
         toW: win.wasPosition.width, toH: win.wasPosition.height,
         elapsed: performance.now(),
-        isMinimizing: false,
+        isMinimizing: true,
+        isMaximizing: false,
       })
     }
   }, [win.isMaximized, win.wasPosition])
@@ -196,14 +217,13 @@ export default function Window({
     resizeInfoRef.current = { active: true, startX: e.clientX, startY: e.clientY, origW: win.width, origH: win.height }
   }, [win.width, win.height])
 
-  // ── Determine display values ────────────────────────────────────────
+  // ── Display values ─────────────────────────────────────────────────
   const isAnimating = !!animRef.current
-  const isMinimizing = isAnimating && animRef.current?.isMinimizing
   const dispX = isAnimating ? renderPos.x : win.x
   const dispY = isAnimating ? renderPos.y : win.y
-  const dispW = isAnimating ? renderPos.w : win.width
-  const dispH = isAnimating ? renderPos.h : win.height
-  const dispOpacity = isAnimating ? renderPos.opacity : (isMinimizing ? 0 : 1)
+  const dispW = isAnimating ? Math.max(1, renderPos.w) : win.width
+  const dispH = isAnimating ? Math.max(1, renderPos.h) : win.height
+  const dispOpacity = isAnimating ? renderPos.opacity : 1
 
   const closeBg = '#ff5f57', closeActive = '#e0443e'
   const minBg = '#febc2e', minActive = '#e0a020'
@@ -268,14 +288,11 @@ export default function Window({
     zIndex: win.zIndex, overflow: 'hidden',
     display: 'flex', flexDirection: 'column',
     border: '1px solid rgba(0,0,0,0.08)',
-    // Block interaction during animation to prevent drag/start conflicts
     pointerEvents: isAnimating ? 'none' : 'auto',
   }
 
-  // Don't render minimized windows (they animate to invisible)
   if (win.isMinimized && !isAnimating) return null
 
-  // Maximized (non-animating)
   if (win.isMaximized && !isAnimating) {
     return (
       <div style={{ ...baseStyle, borderRadius: 0, left: 0, top: 25, width: '100vw', height: `calc(100vh - 25px - 80px)` }} onMouseDown={onFocusRef.current}>
@@ -296,6 +313,3 @@ export default function Window({
     </div>
   )
 }
-
-function easeOutCubic(t: number): number { return 1 - Math.pow(1 - t, 3) }
-function easeInCubic(t: number): number { return t * t * t }
