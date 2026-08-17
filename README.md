@@ -197,4 +197,11 @@ MIT
 
 ---
 
+## 💬 社区
+
+- [GitHub Issue](https://github.com/WLY790515/mac-sim-os/issues) — 报告问题 / 功能建议
+- [QQ 频道](https://pd.qq.com/s/fk41xxrg8?b=9) — 交流讨论
+
+---
+
 > 有问题或建议欢迎提交 Issue 或 Pull Request ⭐
