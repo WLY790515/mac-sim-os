@@ -1,209 +1,145 @@
+---
+created: 2025-01-01
+updated: 2026-08-17
+tags:
+  - project
+  - react
+  - typescript
+  - macOS
+status: active
+---
+
 # mac-sim-os
 
 > 在浏览器中运行的 macOS 风格操作系统模拟器
 
-![React](https://img.shields.io/badge/React-18-61dafb?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![Vite](https://img.shields.io/badge/Vite-5-646cff?logo=vite)
-![Node](https://img.shields.io/badge/Node-%3E%3D18-339935)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Electron](https://img.shields.io/badge/Electron-33.4.6-47848F?logo=electron)
+[[OBSIDIAN]] | [[TODO]] | [[CHANGELOG]]
 
 ---
 
-## 在线预览
+## 🎯 简介
 
-<div align="center">
-  <img src="assets/desktop_final.png" alt="mac-sim-os Desktop" width="800" />
-</div>
+mac-sim-os 是一个基于 **React + TypeScript + IndexedDB** 的浏览器端 macOS 模拟器，完全纯前端运行，无需后端服务器。
 
-👉 [点击体验完整交互式预览](https://wly790515.github.io/mac-sim-os/preview.html) · [返回仓库主页](https://github.com/WLY790515/mac-sim-os)
+**在线体验：** [wly790515.github.io/mac-sim-os](https://wly790515.github.io/mac-sim-os/)
 
-👉 [点击加入qq频道【mac-sim-os】](https://pd.qq.com/s/fk41xxrg8?b=9)
+| ![Desktop](assets/desktop_final.png) | ![Finder](assets/finder_final.png) |
+|---|---|
+| **桌面主界面** | **Finder 文件管理** |
 
-| 桌面主界面                        | Finder 文件管理                    |
-| --------------------------------- | ---------------------------------- |
-| ![桌面](assets/desktop_final.png) | ![Finder](assets/finder_final.png) |
-
-| Terminal 终端                | 计算器                                     |
-| ---------------------------- | ------------------------------------------ |
 | ![Terminal](assets/boot.png) | ![Calculator](assets/calculator_final.png) |
+|---|---|
+| **启动屏 / 终端** | **计算器** |
 
 ---
 
-## ✨ 已实现功能
+## ✨ 核心功能
 
 ### 桌面系统
-
-- **macOS 风格窗口管理**：拖拽移动、边缘缩放、z-index 层级管理
-- **红绿灯按钮动画**：关闭（红）→ 居中缩小淡出；最小化（黄）→ easeIn 吸入 Dock；最大化（绿）→ easeOut 平滑展开
-- **启动屏**：Apple Logo + 进度条，加载完成后自动切换桌面
-- **顶部菜单栏**：实时时钟、WiFi / 音量 / 电池状态图标
-- **桌面**：壁纸渐变、桌面图标双击打开应用
+- macOS 风格窗口管理：拖拽移动、边缘缩放、z-index 层级管理
+- 红绿灯按钮动画：关闭（红）→ 居中缩小淡出；最小化（黄）→ easeIn 吸入 Dock；最大化（绿）→ easeOut 平滑展开
+- 启动屏：Apple Logo 弹性进入 → 进度条加载 → 光晕爆发 → 淡出过渡
+- **首次设置向导**：欢迎页 → 选择壁纸 → 选择主题（深浅色）
+- 顶部菜单栏：实时时钟、WiFi / 电池状态图标、应用动态菜单
+- 桌面壁纸渐变、桌面图标双击打开应用
 
 ### Dock 栏
-
-- **悬停弹跳动画**：CSS `transform: scale()` + cubic-bezier 弹性曲线
-- **图标位置共享**：通过 ref 系统同步 Dock 图标与窗口动画坐标
+- 悬停弹跳动画（CSS transform + cubic-bezier 弹性曲线）
+- 图标位置共享（ref 同步 Dock 图标与窗口动画坐标）
 
 ### 内置应用（19 个）
 
-| 应用           | 功能                                                                                                                                    |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **Terminal**   | 多标签终端，支持 ls/cd/cat/mkdir/touch/rm/cp/mv/echo/head/tail/find/grep/tree/neofetch 等命令，Tab 自动补全，命令历史，工作目录独立追踪 |
-| **Finder**     | IndexedDB 虚拟文件系统浏览，支持图标/列表视图切换、侧边栏导航、面包屑路径、右键菜单、文件上传/下载、重命名、搜索                        |
-| **Safari**     | 浏览器模拟，地址栏导航、历史记录前进/后退、书签面板                                                                                     |
-| **Clock**      | 模拟时钟（60fps 平滑指针）、世界时钟、秒表、闹钟                                                                                        |
-| **Calculator** | 标准计算器                                                                                                                              |
-| **Notes**      | 简易备忘录                                                                                                                              |
-| **Music**      | 音乐播放器                                                                                                                              |
-| **Calendar**   | 日历视图                                                                                                                                |
-| **Contacts**   | 联系人管理                                                                                                                              |
-| **Messages**   | 消息应用                                                                                                                                |
-| **Mail**       | 邮件应用                                                                                                                                |
-| **Photos**     | 照片浏览器                                                                                                                              |
-| **Maps**       | 地图应用                                                                                                                                |
-| **Weather**    | 天气应用                                                                                                                                |
-| **Videos**     | 视频播放器                                                                                                                              |
-| **FaceTime**   | 视频通话应用                                                                                                                            |
-| **Reminders**  | 提醒事项                                                                                                                                |
-| **Editor**     | 文本编辑器（行号、Tab 缩进）                                                                                                            |
-| **Settings**   | 系统设置（主题切换、壁纸选择）                                                                                                          |
+| 应用 | 功能 |
+|---|---|
+| **Terminal** | 多标签终端，支持 ls/cd/cat/mkdir/touch/rm/cp/mv/echo/head/tail/find/grep/tree/neofetch，Tab 补全，命令历史，独立工作目录 |
+| **Finder** | IndexedDB 虚拟文件系统浏览，图标/列表视图切换，侧边栏导航，面包屑路径，右键菜单，文件上传/下载 |
+| **Safari** | 浏览器模拟，地址栏导航，历史记录前进/后退，书签面板 |
+| **Clock** | 模拟时钟（60fps 平滑指针）、世界时钟、秒表、闹钟 |
+| **Calculator** | 标准计算器 |
+| **Notes** | IndexedDB 持久化备忘录，新建/编辑/删除/颜色选择，Tab 缩进 |
+| **Music** | 音乐播放器 |
+| **Calendar** | 添加/删除事件，颜色标记，右侧详情面板 |
+| **Contacts** | IndexedDB CRUD，彩色头像，搜索过滤 |
+| **Messages** | IndexedDB 对话持久化，自动回复，气泡消息 |
+| **Mail** | IndexedDB 存储，收件箱/发件/草稿三文件夹，撰写/回复/删除 |
+| **Photos** | 照片浏览器 |
+| **Maps** | 地图应用 |
+| **Weather** | 模拟天气 API，每 30s 刷新，7 日 + 24 小时预报 |
+| **Videos** | 视频播放器 |
+| **FaceTime** | 视频通话应用 |
+| **Reminders** | 提醒事项 |
+| **Editor** | 文本编辑器（行号、Tab 缩进） |
+| **Settings** | 系统设置：主题切换、壁纸选择、玻璃效果、WiFi |
 
 ### 特效系统
-
-- **Spotlight 全局搜索**：Cmd+Space 呼出，搜索所有应用
-- **Notification Center**：通知中心面板
-- **Control Center**：控制中心（WiFi/蓝牙/亮度/音量快捷开关）
+- **Spotlight**：Cmd+Space 呼出，搜索所有应用
+- **Mission Control**：右上角 ⊞ 按钮，窗口缩略图动画，点击聚焦/关闭
+- **Control Center**：WiFi/蓝牙/亮度/音量快捷开关
 
 ### 键盘快捷键
-
-- **Cmd+W** — 关闭当前窗口
-- **Cmd+M** — 最小化窗口
-- **Cmd+Q** — 退出所有指定应用的窗口
-- **Cmd+D** — 聚焦桌面
-- **Cmd+F** — 全屏切换
-- **Cmd+←/→/↑/↓** — 边缘分屏（左/右/上/下）
-
-### 部署支持
-
-- **GitHub Pages** 自动部署（CI/CD 流水线）
-- **Railway** 一键部署（Caddy 静态服务）
-- **Electron 桌面客户端**：本地打包为 .exe/.dmg 可执行文件
-
----
-
-## 🗺️ 规划路线图
-
-### Phase 1 — 核心体验优化 ✅ 已完成
-
-- [x] macOS 风格窗口动画（easeOut/easeIn cubic 曲线）
-- [x] 窗口阴影层级优化（激活/非激活双层阴影）
-- [x] 多窗口管理改进（拖拽贴边分屏 + Cmd+方向键快速分屏）
-- [x] 键盘快捷键增强（Cmd+W 关闭、Cmd+M 最小化、Cmd+Q 退出所有窗口）
-
-### Phase 2 — 文件系统增强 ✅ 已完成
-
-- [x] IndexedDB 持久化虚拟文件系统（真实文件上传/下载）
-- [x] Finder 完整右键菜单（打开/下载/重命名/删除/新建文件夹/新建文件）
-- [x] 文件夹嵌套导航 + 面包屑路径
-- [x] 40+ 种文件类型图标区分（文档/图片/音频/视频/代码/压缩等）
-- [x] 搜索栏过滤文件名
-
-### Phase 3 — 终端系统 ✅ 已完成
-
-- [x] 多标签页终端 UI（新建/关闭/切换标签）
-- [x] 完整文件系统命令集（ls/cd/cat/mkdir/rm/cp/mv/touch/echo）
-- [x] 高级命令（head/tail/find/grep/tree/neofetch）
-- [x] Tab 自动补全文件名/目录名
-- [x] 命令历史（↑↓方向键）
-- [x] 每个标签页独立工作目录
-- [x] Ctrl+C 中断、Ctrl+L 清屏
-
-### Phase 4 — 原生应用完整化 ✅ 已完成
-
-- [x] Notes 笔记：IndexedDB 持久化，新建/编辑/删除/颜色选择，Tab 缩进
-- [x] Calendar 日历：添加/删除事件，颜色标记，右侧详情面板，弹窗新增
-- [x] Clock 时钟：秒表真正计时（performance.now），倒计时定时器，闹钟系统（定时弹窗），世界时钟
-- [x] Mail 邮件：IndexedDB 存储，收件箱/发件/草稿三文件夹，搜索，撰写/回复/删除，自动收取模拟邮件
-- [x] Contacts 联系人：IndexedDB CRUD，彩色头像，搜索过滤
-- [x] Messages 消息：IndexedDB 对话持久化，自动回复（随机延迟），气泡消息
-- [x] Weather 天气：模拟天气 API，基于纬度自动生成数据，每 30 秒刷新，7 日预报 + 24 小时预报
-- [x] Mission Control：右上角 ⊞ 按钮，窗口缩略图动画，点击聚焦/关闭，Escape 退出
-
-### Phase 5 — 移动端 i-sim-os 🔄 进行中
-
-- [ ] React Native 移动端适配（iOS / Android）
-- [ ] 触摸手势支持（拖动、缩放、长按菜单）
-- [ ] 移动端 Dock 栏重构（底部固定 + 滑出式菜单）
-- [ ] 响应式窗口布局（竖屏独占 / 横屏分屏）
-- [ ] 平板多任务（split-view iPad 风格）
-
----
-
-## 🔌 扩展与社区
-
-- **插件系统**：第三方应用开发接口（正在规划）
-- **主题皮肤**：更多 macOS 主题风格切换
-- **配置导出/导入**：共享桌面配置与壁纸
+- `Cmd+W` — 关闭当前窗口
+- `Cmd+M` — 最小化窗口
+- `Cmd+Q` — 退出所有窗口
+- `Cmd+D` — 聚焦桌面
+- `Cmd+F` — 全屏切换
+- `Cmd+←/→/↑/↓` — 边缘分屏
 
 ---
 
 ## 🛠️ 技术栈
 
-| 层           | 技术                                                        |
-| ------------ | ----------------------------------------------------------- |
-| 前端框架     | React 18 + TypeScript 5 + Vite 5                            |
-| 状态管理     | React `useReducer` + Context API（自定义）                  |
-| 文件系统     | IndexedDB（自定义 Wrapper，`filesystem.ts`）                |
-| 终端命令引擎 | 自研虚拟文件系统命令层（`terminal.ts`），完全对接 IndexedDB |
-| 桌面客户端   | Electron（可选）                                            |
-| 静态服务     | Caddy（Railway 部署）                                       |
-| CI/CD        | GitHub Actions（自动部署到 GitHub Pages）                   |
-| 包管理       | npm                                                         |
+| 层 | 技术 |
+|---|---|
+| 前端框架 | React 18 + TypeScript 5 + Vite 5 |
+| 状态管理 | React `useReducer` + Context API |
+| 文件系统 | IndexedDB（自定义封装 `lib/filesystem.ts`） |
+| 终端命令 | 自研虚拟文件系统命令层 `lib/terminal.ts` |
+| 桌面客户端 | Electron（可选） |
+| CI/CD | GitHub Actions → GitHub Pages 自动部署 |
 
 ---
 
-## 📁 目录结构
+## 📁 项目结构
 
 ```
 vibeos/
-├── client/                              # React 前端应用（Vite + Electron）
+├── client/                              # React 前端（Vite + Electron）
 │   ├── src/
-│   │   ├── apps/                       # 各应用组件（19 个内置应用）
+│   │   ├── apps/                       # 各应用组件（19 个）
 │   │   │   ├── Calculator.tsx
-│   │   │   ├── Finder.tsx
 │   │   │   ├── Terminal.tsx
+│   │   │   ├── Finder.tsx
 │   │   │   └── ...
 │   │   ├── components/                 # 桌面核心组件
-│   │   │   ├── Window.tsx              # 单窗口组件（含动画引擎）
+│   │   │   ├── BootScreen.tsx          # 启动动画
+│   │   │   ├── SetupWizard.tsx         # 首次设置向导
+│   │   │   ├── Desktop.tsx             # 桌面容器
+│   │   │   ├── Window.tsx              # 单窗口（含动画引擎）
 │   │   │   ├── WindowManager.tsx       # 窗口管理器
+│   │   │   ├── MenuBar.tsx             # 动态菜单栏
 │   │   │   ├── Dock.tsx                # Dock 栏
-│   │   │   ├── MenuBar.tsx             # 顶部菜单栏
 │   │   │   ├── Spotlight.tsx           # Spotlight 搜索
-│   │   │   ├── BootScreen.tsx          # 启动屏
-│   │   │   ├── TerminalTab.tsx         # 单标签终端组件
-│   │   │   └── iconRefs.ts             # Dock 图标位置共享
+│   │   │   ├── MissionControl.tsx      # Mission Control
+│   │   │   └── TerminalTab.tsx         # 终端标签页
 │   │   ├── contexts/                   # AppRegistry 上下文
 │   │   ├── lib/                        # 核心库
 │   │   │   ├── filesystem.ts           # IndexedDB 文件系统封装
 │   │   │   └── terminal.ts             # 终端命令执行引擎
-│   │   ├── stores/                     # 应用状态（useReducer + Context）
-│   │   │   └── app.store.tsx
+│   │   ├── stores/                     # 状态管理
+│   │   │   └── app.store.tsx           # useReducer + Context
 │   │   ├── types/                      # TypeScript 类型定义
+│   │   │   └── index.ts                # AppDefinition / WindowState 等
 │   │   ├── registry.tsx                # 应用注册表（Dock 顺序）
 │   │   ├── App.tsx                     # 根组件
 │   │   └── main.tsx                    # 入口
-│   ├── public/icons/                   # 应用图标资源（PNG / 动态 SVG）
+│   ├── public/icons/                   # 应用图标（PNG + 动态 SVG）
 │   ├── electron/                       # Electron 源文件
-│   ├── electron-main.ts                # Electron 主进程入口
+│   │   └── main.ts                     # Electron 主进程
 │   └── package.json
-├── server/                             # Railway 部署服务端
+├── server/
 │   └── Caddyfile                       # Caddy 静态文件服务
 ├── assets/                             # README 截图资源
-├── .github/
-│   └── workflows/
-│       └── deploy.yml                  # GitHub Pages 自动部署
+├── .github/workflows/deploy.yml        # GitHub Pages 自动部署
 ├── Dockerfile                          # Railway Docker 构建
 └── README.md                           # 本文档
 ```
@@ -213,77 +149,45 @@ vibeos/
 ## 🚀 快速开始
 
 ### 环境要求
-
 - Node.js ≥ 18
 
 ### 安装依赖
-
 ```bash
 cd client
 npm install
 ```
 
 ### 启动开发服务器
-
 ```bash
 npm run dev
 ```
-
 访问 http://localhost:5173
 
 ### 本地生产预览
-
 ```bash
 npm run build
 npm run preview
 ```
 
 ### 打包 Electron 桌面应用
-
 ```bash
 npm run electron:build
 ```
-
 生成 Windows `.exe` 安装包。
 
 ---
 
 ## 🌐 部署
 
-### GitHub Pages（推荐，免费）
-
-项目已内置 GitHub Actions 自动部署，推送到 master 分支后自动构建。
-
-1. 打开 [Settings → Pages](https://github.com/WLY790515/mac-sim-os/settings/pages)
-2. **Source** 选择 **GitHub Actions**
-3. 等待 Actions 完成部署
+### GitHub Pages（推荐）
+推送到 master 分支后自动触发 [GitHub Actions](https://github.com/WLY790515/mac-sim-os/actions) 构建部署。
 
 访问：https://wly790515.github.io/mac-sim-os/
 
 ### Railway（备选）
-
-1. 打开 [railway.app](https://railway.app)，GitHub 登录
-2. **New Project** → **Deploy from GitHub repo** → 选择 `WLY790515/mac-sim-os`
-3. Railway 自动检测 Dockerfile 和 Caddyfile 并构建
-4. 点击 **View Live** 获取地址
-
-### 自定义域名（Railway）
-
-1. 进入项目 **Settings** → **Domains**
-2. 点击 **Add Domain**，输入你的域名
-3. 按提示配置 DNS（CNAME 指向 Railway 分配的地址）
-
----
-
-## 🎨 图标资源
-
-图标存放在 `client/public/icons/` 目录：
-
-- **21 个 PNG 应用图标**（从 macosicons.com 批量下载）
-- **3 个动态 SVG 图标**：
-  - `clock_dynamic.svg` — 时针/分针/秒针实时旋转
-  - `calendar_dynamic.svg` — 显示当前日期和星期
-  - `terminal_dynamic.svg` — 带闪烁光标动画
+1. [railway.app](https://railway.app) → New Project → Deploy from GitHub repo
+2. 自动检测 `Dockerfile` 和 `Caddyfile` 并构建
+3. 点击 **View Live** 获取地址
 
 ---
 
@@ -293,4 +197,4 @@ MIT
 
 ---
 
-> 如有问题或建议，欢迎提交 Issue 或 Pull Request ⭐
+> 有问题或建议欢迎提交 Issue 或 Pull Request ⭐

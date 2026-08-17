@@ -4,3 +4,14 @@ release/
 .DS_Store
 *.log
 electron/main.js
+
+# Obsidian 笔记（开发日志）
+.obsidian/
+OBSIDIAN.md
+CHANGELOG.md
+
+# 构建产物
+*.exe
+*.dmg
+*.AppImage
+
