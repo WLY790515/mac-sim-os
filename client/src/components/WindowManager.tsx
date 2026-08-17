@@ -70,7 +70,7 @@ export default function WindowManager() {
             if (!app) return null
             return (
               <Window
-                key={win.appId}
+                key={win.id}
                 window={win}
                 isActive={win.id === activeWindowId}
                 appId={win.appId}
