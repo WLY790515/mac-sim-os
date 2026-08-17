@@ -177,19 +177,6 @@ npm run electron:build
 
 ---
 
-## 🌐 部署
-
-### GitHub Pages（推荐）
-推送到 master 分支后自动触发 [GitHub Actions](https://github.com/WLY790515/mac-sim-os/actions) 构建部署。
-
-访问：https://wly790515.github.io/mac-sim-os/
-
-### Railway（备选）
-1. [railway.app](https://railway.app) → New Project → Deploy from GitHub repo
-2. 自动检测 `Dockerfile` 和 `Caddyfile` 并构建
-3. 点击 **View Live** 获取地址
-
----
 
 ## 📄 License
 
