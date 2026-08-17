@@ -10,6 +10,7 @@ interface AnimationState {
   isClosing: boolean
   fromOpacity: number
   toOpacity: number
+  startTime: number          // 统一入口时间，用于强制最低时长
 }
 
 interface WindowProps {
@@ -98,19 +99,33 @@ export default function Window({
   }, [onSnap])
 
   // ── animation engine ───────────────────────────────────────────────
-  const ANIM_MS = 480
+  // 统一动画时长：最小化更快，最大化/还原稍慢
+  const ANIM_MIN_MS   = 380   // 最小化
+  const ANIM_MAX_MS   = 520   // 最大化 / 还原
+  const ANIM_CLOSE_MS = 480
+  const ANIM_OPEN_MS  = 500
+
+  // 缓动曲线
+  const easeOutExpo  = (t: number): number => t === 1 ? 1 : 1 - Math.pow(2, -10 * t)
+  const easeInExpo   = (t: number): number => t === 0 ? 0 : Math.pow(2, 10 * (t - 1))
   const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3)
-  const easeInCubic = (t: number): number => t * t * t
-  const easeOutBack = (t: number): number => { const c1 = 1.70158; const c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2) }
-  const easeInOutQuart = (t: number): number => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2
+  const easeInBack   = (t: number): number => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2) }
+  const easeOutBack  = (t: number): number => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2) }
+  const easeInOutQuart = (t: number): number => t < 0.5 ? 8*t*t*t*t : 1 - Math.pow(-2*t+2,4)/2
+  // 吸出曲线：先极快后缓慢停止（模拟物理吸附）
+  const easeSuction  = (t: number): number => t < 0.6 ? Math.pow(t/0.6, 1.8) : 1 - Math.pow((1-t)/0.4, 2.5)
+  // 变化曲线：带轻微回弹的平滑过渡
+  const easeMorph    = (t: number): number => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2
 
   const animRef = useRef<AnimationState | null>(null)
   const rafRef = useRef<number>(0)
-  const renderRef = useRef({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
+  const renderRef = useRef({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 })
   const [renderPos, setRenderPos] = useState(() => ({
-    x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1,
+    x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1,
   }))
   const [isFocused, setIsFocused] = useState(false)
+  // 用于计算变形比例
+  const originalRectRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null)
 
   useEffect(() => { setIsFocused(isActive) }, [isActive])
 
@@ -118,16 +133,24 @@ export default function Window({
     cancelAnimationFrame(rafRef.current)
     animRef.current = null
     lastAnimTypeRef.current = null
+    originalRectRef.current = null
     const r = renderRef.current
     if (a?.isMinimizing) {
       r.opacity = 0
+      r.scale = 0.8
+      r.scaleX = 0.8
+      r.scaleY = 0.8
     } else if (a?.isClosing) {
       r.opacity = 0
+      r.scale = 0.7
       onCloseRef.current()
     } else {
       onMoveRef.current(r.x, r.y)
       onResizeRef.current(r.w, r.h)
       r.opacity = 1
+      r.scale = 1
+      r.scaleX = 1
+      r.scaleY = 1
     }
     isAnimatingMaxRef.current = false
     setRenderPos({ ...r })
@@ -137,12 +160,37 @@ export default function Window({
     const a = animRef.current
     if (!a) return
     const now = performance.now()
-    const rawT = Math.min(1, (now - a.elapsed) / ANIM_MS)
-    const easedT = a.isMinimizing ? easeInCubic(rawT) : a.isClosing ? easeInOutQuart(rawT) : easeOutCubic(rawT)
+    const animDuration = a.isMinimizing ? ANIM_MIN_MS : a.isClosing ? ANIM_CLOSE_MS : ANIM_MAX_MS
+    // 进度按真实经过时间计算（不受 startTime 影响）
+    const rawT = Math.min(1, (now - a.elapsed) / animDuration)
+
+    // 选择缓动曲线
+    let easedT: number
+    if (a.isMinimizing) {
+      easedT = easeSuction(rawT)  // 吸出式
+    } else if (a.isClosing) {
+      easedT = easeInOutQuart(rawT)
+    } else if (a.isMaximizing) {
+      easedT = easeMorph(rawT)    // 变化式
+    } else {
+      easedT = easeMorph(rawT)    // 还原也用变化式
+    }
 
     const curOpacity = a.fromOpacity !== undefined
       ? a.fromOpacity + (a.toOpacity - a.fromOpacity) * easedT
       : 1
+
+    // 缩放因子（最大化/还原时使用）
+    let scale = 1, scaleX = 1, scaleY = 1
+    if (a.isMaximizing || (!a.isMinimizing && !a.isClosing && wasMaximizedRef.current)) {
+      // 最大化/还原：中间稍有放大效果
+      if (rawT > 0.3 && rawT < 0.7) {
+        const peak = Math.sin((rawT - 0.3) / 0.4 * Math.PI) * 0.04
+        scale = 1 + peak
+        scaleX = 1 + peak * 0.8
+        scaleY = 1 + peak * 0.6
+      }
+    }
 
     const cur = {
       x: a.fromX + (a.toX - a.fromX) * easedT,
@@ -150,6 +198,7 @@ export default function Window({
       w: a.fromW + (a.toW - a.fromW) * easedT,
       h: a.fromH + (a.toH - a.fromH) * easedT,
       opacity: curOpacity,
+      scale, scaleX, scaleY,
     }
     renderRef.current = cur
     setRenderPos(cur)
@@ -176,14 +225,15 @@ export default function Window({
         fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
         toX: cx - 1, toY: cy - 1, toW: 2, toH: 2,
         elapsed: performance.now(),
+        startTime: performance.now(),
         isMinimizing: false,
         isMaximizing: false,
         isClosing: true,
         fromOpacity: 1,
         toOpacity: 0,
       }
-      renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
-      setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
+      renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 }
+      setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 })
       startAnim(a)
     }
   }, [win.x, win.y, win.width, win.height, startAnim])
@@ -203,19 +253,20 @@ export default function Window({
       fromX: dockX, fromY: dockY, fromW: 0, fromH: 0,
       toX: win.x, toY: win.y, toW: win.width, toH: win.height,
       elapsed: performance.now(),
+      startTime: performance.now(),
       isMinimizing: false,
       isMaximizing: false,
       isClosing: false,
       fromOpacity: 0,
       toOpacity: 1,
     }
-    renderRef.current = { x: dockX, y: dockY, w: 0, h: 0, opacity: 0 }
-    setRenderPos({ x: dockX, y: dockY, w: 0, h: 0, opacity: 0 })
+    renderRef.current = { x: dockX, y: dockY, w: 0, h: 0, opacity: 0, scale: 0.7, scaleX: 0.7, scaleY: 0.7 }
+    setRenderPos({ x: dockX, y: dockY, w: 0, h: 0, opacity: 0, scale: 0.7, scaleX: 0.7, scaleY: 0.7 })
     startAnim(a)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.id, win.isMinimized])
 
-  // ── Minimize animation ─────────────────────────────────────────────
+  // ── Minimize animation (吸出式) ────────────────────────────────────
   useLayoutEffect(() => {
     if (animRef.current || !win.isMinimized || wasMinimizedRef.current) return
     const animKey = `min:${win.id}`
@@ -231,19 +282,20 @@ export default function Window({
       fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
       toX: targetX, toY: targetY, toW: targetW, toH: targetH,
       elapsed: performance.now(),
+      startTime: performance.now(),
       isMinimizing: true,
       isMaximizing: false,
       isClosing: false,
       fromOpacity: 1,
-      toOpacity: 0.3,
+      toOpacity: 0,
     }
-    renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
-    setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
+    renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 }
+    setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 })
     startAnim(a)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.isMinimized])
 
-  // ── Maximize animation ─────────────────────────────────────────────
+  // ── Maximize animation (变化式) ────────────────────────────────────
   useLayoutEffect(() => {
     if (animRef.current || !win.isMaximized || wasMaximizedRef.current) return
     const animKey = `max:${win.id}`
@@ -255,19 +307,20 @@ export default function Window({
       fromX: win.x, fromY: win.y, fromW: win.width, fromH: win.height,
       toX: 0, toY: 25, toW: window.innerWidth, toH: window.innerHeight - 25 - 80,
       elapsed: performance.now(),
+      startTime: performance.now(),
       isMinimizing: false,
       isMaximizing: true,
       isClosing: false,
       fromOpacity: 1,
       toOpacity: 1,
     }
-    renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 }
-    setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1 })
+    renderRef.current = { x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 }
+    setRenderPos({ x: win.x, y: win.y, w: win.width, h: win.height, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 })
     startAnim(a)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.isMaximized])
 
-  // ── Restore animation (maximized → original) ───────────────────────
+  // ── Restore animation (变化式) ─────────────────────────────────────
   useLayoutEffect(() => {
     if (animRef.current) return
     if (win.isMaximized) return
@@ -282,14 +335,15 @@ export default function Window({
       toX: win.wasPosition?.x ?? win.x, toY: win.wasPosition?.y ?? win.y,
       toW: win.wasPosition?.width ?? win.width, toH: win.wasPosition?.height ?? win.height,
       elapsed: performance.now(),
+      startTime: performance.now(),
       isMinimizing: false,
       isMaximizing: false,
       isClosing: false,
       fromOpacity: 1,
       toOpacity: 1,
     }
-    renderRef.current = { x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 }
-    setRenderPos({ x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1 })
+    renderRef.current = { x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 }
+    setRenderPos({ x: 0, y: 25, w: window.innerWidth, h: window.innerHeight - 25 - 80, opacity: 1, scale: 1, scaleX: 1, scaleY: 1 })
     startAnim(a)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.isMaximized])
@@ -313,6 +367,9 @@ export default function Window({
   const dispW = isAnimating ? Math.max(1, renderPos.w) : win.width
   const dispH = isAnimating ? Math.max(1, renderPos.h) : win.height
   const dispOpacity = isAnimating ? renderPos.opacity : 1
+  const dispScale = isAnimating ? renderPos.scale : 1
+  const dispScaleX = isAnimating ? renderPos.scaleX : 1
+  const dispScaleY = isAnimating ? renderPos.scaleY : 1
 
   // Active window subtle glow pulse
   const glowPulse = isActive ? (Math.sin(Date.now() / 800) * 0.5 + 0.5) : 0
@@ -405,13 +462,18 @@ export default function Window({
     pointerEvents: isAnimating ? 'none' : 'auto',
     boxShadow: baseBoxShadow,
     transition: isActive ? 'box-shadow 0.3s ease' : 'none',
+    // 动画期间使用 transform 实现缩放
+    transformOrigin: 'top left',
+    transform: isAnimating && (dispScale !== 1 || dispScaleX !== 1 || dispScaleY !== 1)
+      ? `scaleX(${dispScaleX}) scaleY(${dispScaleY})`
+      : undefined,
   }
 
   if (win.isMinimized && !isAnimating) return null
 
   if (win.isMaximized && !isAnimating && !isAnimatingMaxRef.current) {
     return (
-      <div style={{ ...baseStyle, borderRadius: 0, left: 0, top: 25, width: '100vw', height: `calc(100vh - 25px - 80px)` }} onMouseDown={onFocusRef.current}>
+      <div style={{ ...baseStyle, borderRadius: 0, left: 0, top: 25, width: '100vw', height: `calc(100vh - 25px - 80px)`, transform: undefined }} onMouseDown={onFocusRef.current}>
         {titleBar}
         <div style={{ flex: 1, overflow: 'hidden' }}><AppComponent /></div>
       </div>

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 
 type Phase = 'logo-in' | 'progress' | 'glow' | 'fade-out'
 
+const MIN_BOOT_MS = 3000  // 强制最低播放时长
+
 export default function BootScreen({ onComplete }: { onComplete: () => void }) {
   const [phase, setPhase] = useState<Phase>('logo-in')
   const [progress, setProgress] = useState(0)
@@ -9,6 +11,7 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
   const logoRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
   const glowRef = useRef<HTMLDivElement>(null)
+  const bootStartTimeRef = useRef<number>(performance.now())
 
   // Background color cycle
   useEffect(() => {
@@ -42,7 +45,10 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
   // Phase 4: Fade out (4900-5400ms)
   useEffect(() => {
     if (phase !== 'fade-out') return
-    const t = setTimeout(() => onComplete(), 500)
+    // 强制最低 3 秒，计算还需等待多久
+    const elapsed = performance.now() - bootStartTimeRef.current
+    const remaining = Math.max(0, MIN_BOOT_MS - elapsed)
+    const t = setTimeout(() => onComplete(), 500 + remaining)
     return () => clearTimeout(t)
   }, [phase, onComplete])
 
