@@ -1,0 +1,13 @@
+{
+  "id": "hello-plugin",
+  "name": "Hello Plugin",
+  "icon": "https://raw.githubusercontent.com/WLY790515/mac-sim-os-plugin-hello/main/public/icon.svg",
+  "component": "https://raw.githubusercontent.com/WLY790515/mac-sim-os-plugin-hello/main/dist/plugin.js",
+  "defaultSize": { "width": 480, "height": 360 },
+  "version": "1.0.0",
+  "author": "WLY790515",
+  "license": "MIT",
+  "description": "mac-sim-os 基础插件测试，展示 dispatch、notify、storage 等 API",
+  "permissions": ["storage"],
+  "dependencies": []
+}

@@ -51,42 +51,22 @@ export interface DesktopFile {
 
 // ─── 文件系统接口（fs 权限）───────────────────────────────────────────────
 
-export interface FSNode {
-  id: string
-  name: string
-  type: 'file' | 'folder'
-  path: string
-  parentId: string | null
-  size?: number
-  createdAt: Date
-  updatedAt: Date
-  content?: string
-  children?: FSNode[]
-}
-
 export interface TerminalFS {
-  ls(path: string): Promise<string[]>
-  cd(path: string): Promise<{ cwd: string }>
-  pwd(): Promise<string>
-  cat(path: string): Promise<string>
-  mkdir(path: string): Promise<void>
-  touch(path: string): Promise<void>
-  rm(path: string, recursive?: boolean): Promise<void>
-  cp(src: string, dst: string): Promise<void>
-  mv(src: string, dst: string): Promise<void>
-  echo(content: string, path: string): Promise<void>
-  head(path: string, n?: number): Promise<string[]>
-  tail(path: string, n?: number): Promise<string[]>
-  find(path: string, pattern: string): Promise<string[]>
-  grep(path: string, pattern: string): Promise<string[]>
-  tree(path: string, depth?: number): Promise<string>
-  neofetch(): Promise<string>
-  uname(): Promise<string>
-  which(cmd: string): Promise<string>
-  readFile(path: string): Promise<string>
-  writeFile(path: string, content: string): Promise<void>
-  addFolder(name: string, parentPath: string): Promise<string>
-  addFile(name: string, content: string, parentPath: string): Promise<string>
+  init(): Promise<void>
+  getAll(): Promise<any[]>
+  getChildren(parentId: string): Promise<any[]>
+  get(id: string): Promise<any | undefined>
+  create(item: any): Promise<any>
+  update(id: string, patch: any): Promise<void>
+  remove(id: string): Promise<void>
+  move(id: string, newParentId: string): Promise<void>
+  search(query: string): Promise<any[]>
+  readFile(id: string): Promise<string | null>
+  writeFile(id: string, content: string): Promise<void>
+  addFileToFolder(parentId: string, name: string, content?: string): Promise<any>
+  addFolder(parentId: string, name: string): Promise<any>
+  formatSize(bytes: number): string
+  formatDate(ts: number): string
 }
 
 // ─── 持久化存储接口（storage 权限）────────────────────────────────────────

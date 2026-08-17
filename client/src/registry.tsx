@@ -22,6 +22,12 @@ import MapsApp from './apps/Maps'
 import FaceTimeApp from './apps/FaceTime'
 import VideosApp from './apps/Videos'
 import AboutApp from './apps/About'
+import HelloPluginApp from './apps/HelloPlugin'
+import PluginAdapter from './apps/PluginAdapter'
+
+// 插件运行时包装（测试用，实际应从远程加载）
+const wrapPlugin = (component: React.ComponentType<any>, id: string) =>
+  () => React.createElement(PluginAdapter, { pluginComponent: component, pluginId: id, permissions: ['storage'] })
 
 // ─── Icon Paths ────────────────────────────────────────────────
 const icon = (name: string) => import.meta.env.BASE_URL + 'icons/' + name + '.png'
@@ -1100,6 +1106,24 @@ export const apps: AppDefinition[] = [
     menus: [
       { label: '关于本机', items: [
         { label: '关闭', shortcut: '⌘W', action: undefined },
+      ]},
+    ],
+  },
+  // ─── 插件应用（测试用）────────────────────────────────────────────
+  {
+    id: 'hello-plugin',
+    name: 'Hello Plugin',
+    icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2NjdlZWEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM3NjRiYTIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI4IiBmaWxsPSJ1cmwoI2cpIi8+PHRleHQgeD0iNjQiIHk9Ijg2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjcyIiBmb250LWZhbWlseT0iLWFwcGxlLXN5c3RlbSxzYW5zLXNlcmlmIiBmaWxsPSIjZmZmIj7wn5q9PC90ZXh0Pjwvc3ZnPg==',
+    defaultSize: { width: 480, height: 360 },
+    defaultPosition: { x: 120, y: 90 },
+    component: wrapPlugin(HelloPluginApp, 'hello-plugin'),
+    menus: [
+      { label: 'Hello Plugin', items: [
+        { label: '关于', action: undefined },
+        { type: 'divider' as const },
+        { label: '偏好设置', action: undefined },
+        { type: 'divider' as const },
+        { label: '退出', shortcut: '⌘W', action: undefined },
       ]},
     ],
   },
