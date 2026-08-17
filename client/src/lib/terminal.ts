@@ -67,8 +67,8 @@ export class TerminalFS {
     return target
   }
 
-  static async pwd(): Promise<string> {
-    return DEFAULT_PATH
+  static async pwd(cwd: string): Promise<string> {
+    return cwd
   }
 
   static async cat(path: string): Promise<string[]> {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useApp } from '../stores/app.store'
 import TerminalTab from '../components/TerminalTab'
 
@@ -14,6 +14,20 @@ export default function TerminalApp() {
   const nextId = useCallback(() => Date.now() + Math.random(), [])
 
   const terminalWinId = state.windows.find((w: any) => w.appId === 'terminal')?.id
+
+  // Listen for terminal menu commands
+  useEffect(() => {
+    if (!state.terminalAction) return
+    if (state.terminalAction === 'clear') {
+      setTabs(prev => prev.map(t => ({ ...t })))
+      // Re-render all active tabs with empty lines by finding the active tab component ref
+      // Actually we need to clear the lines of the active tab
+      // Since we can't directly access TerminalTab, we'll clear by updating cwd to trigger re-mount
+      // A better approach: dispatch a custom event
+      window.dispatchEvent(new CustomEvent('terminal-clear'))
+    }
+    dispatch({ type: 'SET_TERMINAL_ACTION', action: null })
+  }, [state.terminalAction, dispatch])
 
   const handleTrafficLight = useCallback((action: 'close' | 'minimize' | 'maximize') => {
     if (!terminalWinId) return

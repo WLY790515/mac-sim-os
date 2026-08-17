@@ -105,6 +105,16 @@ export default function MenuBar({ apps }: MenuBarProps) {
     if (label.includes('重做')) return () => document.execCommand('redo')
     if (label.includes('全选')) return () => document.execCommand('selectAll')
     if (label.includes('查找')) return () => {}
+    // Terminal-specific actions
+    if (activeApp?.id === 'terminal') {
+      if (label.includes('清屏')) return () => dispatch({ type: 'SET_TERMINAL_ACTION', action: 'clear' })
+      if (label.includes('新建标签页') || label.includes('新建窗口')) {
+        const t = apps.find(a => a.id === 'terminal')
+        if (t) dispatch({ type: 'OPEN_WINDOW', app: t })
+        return () => {}
+      }
+      if (label.includes('关闭标签页') || label.includes('关闭窗口')) return onClose
+    }
     return undefined
   }
 

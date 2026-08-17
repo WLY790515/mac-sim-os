@@ -40,6 +40,13 @@ export default function TerminalTab({ tabId, cwd, onCwdChange, onExit }: Termina
     inputRef.current?.focus()
   }, [tabId])
 
+  // Listen for terminal-wide clear command from menu
+  useEffect(() => {
+    const handler = () => setLines([])
+    window.addEventListener('terminal-clear', handler)
+    return () => window.removeEventListener('terminal-clear', handler)
+  }, [])
+
   const runCommand = useCallback(async (cmd: string) => {
     const id = ++procId.current
     setLines(prev => [...prev, { id, input: cmd, output: [] }])

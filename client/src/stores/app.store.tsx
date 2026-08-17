@@ -17,6 +17,7 @@ interface State {
   wifiOn: boolean
   battery: number
   darkMode: boolean
+  terminalAction: string | null
 }
 
 let zCounter = 100
@@ -119,11 +120,12 @@ function reducer(state: State, action: Action): State {
     case 'SET_BATTERY': return { ...state, battery: action.level }
     case 'SET_DARK_MODE': return { ...state, darkMode: action.on }
     case 'SET_MENU_BAR_APP': return { ...state, menuBarActiveApp: action.appId }
+    case 'SET_TERMINAL_ACTION': return { ...state, terminalAction: action.action }
     default: return state
   }
 }
 
-const initState: State = { windows: [], activeWindowId: null, desktopFiles: [], theme: 'light', menuBarActiveApp: null, wallpaper: 'aurora', glassEnabled: true, wifiOn: true, battery: 87, darkMode: true }
+let initState: State = { windows: [], activeWindowId: null, desktopFiles: [], theme: 'light', menuBarActiveApp: null, wallpaper: 'aurora', glassEnabled: true, wifiOn: true, battery: 87, darkMode: true, terminalAction: null }
 
 const AppContext = createContext<{ state: State; dispatch: React.Dispatch<Action> }>({ state: initState, dispatch: () => {} })
 

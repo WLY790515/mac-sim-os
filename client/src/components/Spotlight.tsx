@@ -17,6 +17,9 @@ export default function Spotlight({ apps }: { apps: import('../types').AppDefini
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === ' ') {
         e.preventDefault()
+        // Don't toggle if typing in an input (e.g. Spotlight's own input)
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return
         setIsVisible(v => {
           if (!v) setQuery('')
           return !v
@@ -62,7 +65,7 @@ export default function Spotlight({ apps }: { apps: import('../types').AppDefini
               value={query}
               onChange={e => setQuery(e.target.value)}
               autoFocus
-              placeholder="Search apps..."
+              placeholder="搜索应用…"
               style={{
                 flex: 1, fontSize: 16, border: 'none', outline: 'none',
                 background: 'transparent', color: '#1d1d1f',
@@ -98,8 +101,8 @@ export default function Spotlight({ apps }: { apps: import('../types').AppDefini
           )}
         </div>
         <div style={{ padding: '8px 14px', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 11, color: '#86868b', display: 'flex', justifyContent: 'space-between' }}>
-          <span>↑↓ Navigate · Enter Open · Esc Close</span>
-          <span>{results.length} items</span>
+          <span>↑↓ 导航　·　Enter 打开　·　Esc 关闭</span>
+          <span>{results.length} 个结果</span>
         </div>
       </div>
       <style>{`
