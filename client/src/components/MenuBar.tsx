@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { useApp } from '../stores/app.store'
+import type { AppDefinition, MenuItem } from '../types'
 
 interface MenuBarProps {
-  apps: Array<{ id: string; name: string; icon: string }>
+  apps: AppDefinition[]
 }
 
 export default function MenuBar({ apps }: MenuBarProps) {
@@ -11,6 +12,13 @@ export default function MenuBar({ apps }: MenuBarProps) {
   const [ctrlMenuOpen, setCtrlMenuOpen] = useState(false)
   const [wallpaperPicker, setWallpaperPicker] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+
+  // Refs to track each menu button's position
+  const menuBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const setMenuBtnRef = useCallback((label: string, el: HTMLButtonElement | null) => {
+    if (el) menuBtnRefs.current.set(label, el)
+    else menuBtnRefs.current.delete(label)
+  }, [])
 
   // Live clock
   const [tick, setTick] = useState(0)
@@ -47,6 +55,59 @@ export default function MenuBar({ apps }: MenuBarProps) {
     ? <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM2.5 7.5c1.5-2 3.5-3 5.5-3s4 1 5.5 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M.5 5C3 2 5.5 1 8 1s5 1 7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
     : <svg width="16" height="12" viewBox="0 0 16 12" fill="none" style={{ opacity: 0.4 }}><path d="M8 10.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM2.5 7.5c1.5-2 3.5-3 5.5-3s4 1 5.5 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeDasharray="2 2"/><path d="M.5 5C3 2 5.5 1 8 1s5 1 7.5 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeDasharray="2 2" opacity="0.3"/></svg>
 
+  const isDivider = (item: MenuItem): item is { type: 'divider' } => 'type' in item && item.type === 'divider'
+
+  // Build a default action handler that dispatches common operations
+  const defaultAction = (item: MenuItem): (() => void) | undefined => {
+    if (isDivider(item)) return undefined
+    if (item.action) return item.action
+    const label = item.label
+    const sw = item.shortcut ?? ''
+    const activeWin = state.windows.find((w: any) => w.id === state.activeWindowId)
+    const onClose = () => { if (state.activeWindowId) dispatch({ type: 'CLOSE_WINDOW', id: state.activeWindowId }) }
+    const onMinimize = () => { if (state.activeWindowId) dispatch({ type: 'MINIMIZE_WINDOW', id: state.activeWindowId }) }
+    const onZoom = () => { if (state.activeWindowId) dispatch({ type: 'MAXIMIZE_WINDOW', id: state.activeWindowId }) }
+    const onFocusAll = () => {
+      const wins = state.windows.filter((w: any) => !w.isMinimized)
+      if (wins.length > 1) {
+        wins.forEach((w: any, i: number) => dispatch({ type: 'SET_Z_INDEX', id: w.id, zIndex: 100 + i }))
+      }
+    }
+    const openFinder = () => {
+      const f = apps.find(a => a.id === 'finder')
+      if (f) dispatch({ type: 'OPEN_WINDOW', app: f })
+    }
+    const openSettings = () => {
+      const s = apps.find(a => a.id === 'settings')
+      if (s) dispatch({ type: 'OPEN_WINDOW', app: s })
+    }
+    if (label.includes('关闭') || label.includes('退出') || label === 'Quit') {
+      if (label.includes('强制')) return undefined // handled in system menu
+      if (sw.includes('Q') || label.includes('退出')) return closeAllMenus // quit app
+      return onClose
+    }
+    if (label.includes('最小化')) return onMinimize
+    if (label.includes('缩放') || label.includes('最大化')) return onZoom
+    if (label.includes('前置全部')) return onFocusAll
+    if (label.includes('新建') || label.includes('新窗口')) return openFinder
+    if (label.includes('设置') || label.includes('偏好')) return openSettings
+    if (label.includes('关于')) return () => {
+      const a = apps.find(x => x.id === 'about')
+      if (a) { dispatch({ type: 'OPEN_WINDOW', app: a }); closeAllMenus() }
+    }
+    if (label.includes('全屏') || label.includes('进入全屏')) return onZoom
+    if (label.includes('帮助') || label.includes('键盘快捷键')) return () => setHelpOpen(true)
+    if (label.includes('隐藏')) return closeAllMenus
+    if (label.includes('复制')) return () => document.execCommand('copy')
+    if (label.includes('剪切')) return () => document.execCommand('cut')
+    if (label.includes('粘贴')) return () => document.execCommand('paste')
+    if (label.includes('撤销')) return () => document.execCommand('undo')
+    if (label.includes('重做')) return () => document.execCommand('redo')
+    if (label.includes('全选')) return () => document.execCommand('selectAll')
+    if (label.includes('查找')) return () => {}
+    return undefined
+  }
+
   return (
     <>
       <div
@@ -71,9 +132,14 @@ export default function MenuBar({ apps }: MenuBarProps) {
           {activeApp?.name || '访达'}
         </button>
 
-        {/* App menus */}
-        {['文件', '编辑', '视图', '前往', '窗口', '帮助'].map(item => (
-          <button key={item} onClick={(e) => openMenu(item, e)} style={btnStyle}>{item}</button>
+        {/* Dynamic app menus from activeApp.menus */}
+        {activeApp?.menus?.map(menu => (
+          <button
+            key={menu.label}
+            ref={el => setMenuBtnRef(menu.label, el)}
+            onClick={(e) => openMenu(menu.label, e)}
+            style={btnStyle}
+          >{menu.label}</button>
         ))}
 
         <div style={{ flex: 1 }} />
@@ -181,24 +247,34 @@ export default function MenuBar({ apps }: MenuBarProps) {
         </div>
       )}
 
-      {/* App menus */}
-      {activeMenu && activeMenu !== 'app' && (
-        <div style={{
-          position: 'fixed', top: 35,
-          left: activeMenu === '文件' ? 68 : activeMenu === '编辑' ? 106 : activeMenu === '视图' ? 138 : activeMenu === '前往' ? 170 : activeMenu === '窗口' ? 202 : 238,
-          zIndex: 10001, width: 200,
-          background: 'rgba(30,30,30,0.92)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-          border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)', padding: '4px 0',
-          animation: 'dropEnter 0.15s ease-out',
-        }} onClick={closeAllMenus}>
-          {getMenuItems(activeMenu, apps, dispatch, state, setHelpOpen).map((item, i) =>
-            item.type === 'divider'
-              ? <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '3px 0' }} />
-              : <button key={i} onClick={() => { item.action?.(); closeAllMenus() }} style={{ ...menuBtnStyle, animation: `menuStagger 0.1s ease-out ${i * 0.03}s both` }}>{item.label}{item.shortcut ? <span style={{ float: 'right', opacity: 0.4, fontSize: 11 }}>{item.shortcut}</span> : ''}</button>
-          )}
-        </div>
-      )}
+      {/* Dynamic app menu dropdown */}
+      {activeMenu && activeMenu !== 'app' && (() => {
+        const menuDef = activeApp?.menus?.find(m => m.label === activeMenu)
+        if (!menuDef) return null
+        const btn = menuBtnRefs.current.get(activeMenu)
+        const rect = btn?.getBoundingClientRect()
+        const left = rect ? rect.left : 68
+        return (
+          <div style={{
+            position: 'fixed', top: 35, left, zIndex: 10001,
+            minWidth: 200, background: 'rgba(30,30,30,0.92)',
+            backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+            border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)', padding: '4px 0',
+            animation: 'dropEnter 0.15s ease-out',
+          }} onClick={closeAllMenus}>
+            {menuDef.items.map((item, i) => {
+              const action = defaultAction(item)
+              if (isDivider(item)) return <div key={i} style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '3px 0' }} />
+              if (!action) return null
+              return <button key={i} onClick={() => { action(); closeAllMenus() }} style={{ ...menuBtnStyle, animation: `menuStagger 0.1s ease-out ${i * 0.03}s both` }}>
+                      {item.label}
+                      {item.shortcut ? <span style={{ float: 'right', opacity: 0.4, fontSize: 11 }}>{item.shortcut}</span> : ''}
+                    </button>
+            })}
+          </div>
+        )
+      })()}
 
       {/* Help menu overlay */}
       {helpOpen && (
@@ -254,71 +330,6 @@ export default function MenuBar({ apps }: MenuBarProps) {
       {helpOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 10000 }} onClick={() => setHelpOpen(false)} />}
     </>
   )
-}
-
-function getMenuItems(menu: string, apps: Array<{id:string;name:string;icon:string}>, dispatch: any, state: any, setHelpOpen: React.Dispatch<React.SetStateAction<boolean>>) {
-  switch (menu) {
-    case '文件':
-      return [
-        { label: '新建窗口', shortcut: '⌘N', action: () => { const f = apps.find(a => a.id === 'finder'); if (f) dispatch({ type: 'OPEN_WINDOW', app: f }) }},
-        { type: 'divider' as const },
-        { label: '关闭窗口', shortcut: '⌘W', action: () => { if (state.activeWindowId) dispatch({ type: 'CLOSE_WINDOW', id: state.activeWindowId }) }},
-      ]
-    case '编辑':
-      return [
-        { label: '撤销', shortcut: '⌘Z', action: () => { document.execCommand('undo') }},
-        { label: '重做', shortcut: '⇧⌘Z', action: () => { document.execCommand('redo') }},
-        { type: 'divider' as const },
-        { label: '剪切', shortcut: '⌘X', action: () => { document.execCommand('cut') }},
-        { label: '复制', shortcut: '⌘C', action: () => { document.execCommand('copy') }},
-        { label: '粘贴', shortcut: '⌘V', action: () => { document.execCommand('paste') }},
-        { label: '全选', shortcut: '⌘A', action: () => { document.execCommand('selectAll') }},
-      ]
-    case '视图':
-      return [
-        { label: '图标视图', action: () => {} },
-        { label: '列表视图', action: () => {} },
-        { label: '分栏视图', action: () => {} },
-        { type: 'divider' as const },
-        { label: '显示路径栏', action: () => {} },
-        { label: '显示状态栏', action: () => {} },
-      ]
-    case '前往':
-      return [
-        { label: '主目录', shortcut: '⌘⇧H', action: () => {} },
-        { label: '桌面', shortcut: '⌘D', action: () => {} },
-        { label: '文稿', shortcut: '⌘⇧O', action: () => {} },
-        { label: '下载', shortcut: '⌘⇧J', action: () => {} },
-        { type: 'divider' as const },
-        { label: '应用程序', shortcut: '⌘⇧A', action: () => { const f = apps.find(a => a.id === 'finder'); if (f) dispatch({ type: 'OPEN_WINDOW', app: f }) }},
-      ]
-    case '窗口':
-      return [
-        { label: '最小化', shortcut: '⌘M', action: () => { if (state.activeWindowId) dispatch({ type: 'MINIMIZE_WINDOW', id: state.activeWindowId }) }},
-        { label: '缩放', shortcut: '⌘Z', action: () => {} },
-        { type: 'divider' as const },
-        { label: '全部前置', shortcut: '⌘`', action: () => {
-          const windows = state.windows.filter((w: any) => !w.isMinimized)
-          if (windows.length > 1) {
-            const active = windows.find((w: any) => w.id === state.activeWindowId)
-            if (active) {
-              windows.forEach((w: any, i: number) => {
-                dispatch({ type: 'SET_Z_INDEX', id: w.id, zIndex: 100 + i })
-              })
-            }
-          }
-        }},
-      ]
-    case '帮助':
-      return [
-        { label: 'mac-sim-os 帮助', action: () => setHelpOpen(true) },
-        { type: 'divider' as const },
-        { label: '键盘快捷键', shortcut: '⌘?', action: () => setHelpOpen(true) },
-        { type: 'divider' as const },
-        { label: '加入 QQ 频道', action: () => window.open('https://pd.qq.com/s/fk41xxrg8?b=9', '_blank') },
-      ]
-    default: return []
-  }
 }
 
 const btnStyle: React.CSSProperties = {

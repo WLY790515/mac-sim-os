@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { useApp } from '../stores/app.store'
 import TerminalTab from '../components/TerminalTab'
 
 interface Tab {
@@ -7,9 +8,19 @@ interface Tab {
 }
 
 export default function TerminalApp() {
+  const { state, dispatch } = useApp()
   const [tabs, setTabs] = useState<Tab[]>([{ id: 1, cwd: '/Users/mac-sim-os' }])
   const [activeTabId, setActiveTabId] = useState(1)
   const nextId = useCallback(() => Date.now() + Math.random(), [])
+
+  const terminalWinId = state.windows.find((w: any) => w.appId === 'terminal')?.id
+
+  const handleTrafficLight = useCallback((action: 'close' | 'minimize' | 'maximize') => {
+    if (!terminalWinId) return
+    if (action === 'close') dispatch({ type: 'CLOSE_WINDOW', id: terminalWinId })
+    else if (action === 'minimize') dispatch({ type: 'MINIMIZE_WINDOW', id: terminalWinId })
+    else if (action === 'maximize') dispatch({ type: 'MAXIMIZE_WINDOW', id: terminalWinId })
+  }, [terminalWinId, dispatch])
 
   const addTab = useCallback(() => {
     const id = nextId()
@@ -52,9 +63,21 @@ export default function TerminalApp() {
       }}>
         {/* Traffic lights */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', gap: 8, flexShrink: 0 }}>
-          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57', cursor: 'pointer' }} />
-          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#febc2e', cursor: 'pointer' }} />
-          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#28c840', cursor: 'pointer' }} />
+          <div
+            onClick={() => handleTrafficLight('close')}
+            style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57', cursor: 'pointer' }}
+            title="关闭"
+          />
+          <div
+            onClick={() => handleTrafficLight('minimize')}
+            style={{ width: 12, height: 12, borderRadius: '50%', background: '#febc2e', cursor: 'pointer' }}
+            title="最小化"
+          />
+          <div
+            onClick={() => handleTrafficLight('maximize')}
+            style={{ width: 12, height: 12, borderRadius: '50%', background: '#28c840', cursor: 'pointer' }}
+            title="最大化"
+          />
         </div>
 
         {/* Tabs */}

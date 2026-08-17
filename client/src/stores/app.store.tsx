@@ -43,18 +43,27 @@ function reducer(state: State, action: Action): State {
         activeWindowId: id,
       }
     }
-    case 'CLOSE_WINDOW':
+    case 'CLOSE_WINDOW': {
+      const remaining = state.windows.filter((w: WindowState) => w.id !== action.id)
+      const wasActiveApp = state.menuBarActiveApp
+      const activeAppWindows = remaining.filter((w: WindowState) => w.appId === wasActiveApp && !w.isMinimized)
       return {
         ...state,
-        windows: state.windows.filter((w: WindowState) => w.id !== action.id),
-        activeWindowId: state.activeWindowId === action.id ? (state.windows.find((w: WindowState) => w.id !== action.id)?.id ?? null) : state.activeWindowId,
+        windows: remaining,
+        activeWindowId: state.activeWindowId === action.id ? (remaining.find((w: WindowState) => w.id !== action.id)?.id ?? null) : state.activeWindowId,
+        menuBarActiveApp: (state.activeWindowId === action.id || !activeAppWindows.length) && remaining.length > 0
+          ? remaining[remaining.length - 1].appId
+          : state.menuBarActiveApp,
       }
+    }
     case 'FOCUS_WINDOW': {
       const newZ = ++zCounter
+      const win = state.windows.find((w: WindowState) => w.id === action.id)
       return {
         ...state,
         windows: state.windows.map((w: WindowState) => w.id === action.id ? { ...w, zIndex: newZ } : w),
         activeWindowId: action.id,
+        menuBarActiveApp: win?.appId ?? state.menuBarActiveApp,
       }
     }
     case 'MINIMIZE_WINDOW':

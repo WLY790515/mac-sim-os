@@ -12,6 +12,15 @@ export interface WindowState {
   wasPosition?: { x: number; y: number; width: number; height: number }
 }
 
+export type MenuItem =
+  | { label: string; shortcut?: string; action?: () => void; divider?: boolean; submenu?: MenuItem[] }
+  | { type: 'divider' }
+
+export interface AppMenu {
+  label: string
+  items: MenuItem[]
+}
+
 export interface AppDefinition {
   id: string
   name: string
@@ -19,6 +28,7 @@ export interface AppDefinition {
   defaultSize?: { width: number; height: number }
   defaultPosition?: { x: number; y: number }
   component: React.ComponentType<any>
+  menus?: AppMenu[]
 }
 
 export interface DesktopFile {

@@ -26,7 +26,7 @@ function setHiddenApps(hidden: string[]) {
 }
 
 function iconPath(name: string): string {
-  return `/icons/${name}`
+  return import.meta.env.BASE_URL + 'icons/' + name + '.png'
 }
 
 export default function Dock({ apps }: DockProps) {
