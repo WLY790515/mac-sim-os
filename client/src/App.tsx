@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react'
 import type { AppDefinition } from './types'
 import Desktop from './components/Desktop'
 import BootScreen from './components/BootScreen'
+import SetupWizard from './components/SetupWizard'
 import KeyboardShortcuts from './components/KeyboardShortcuts'
 import { AppRegistryProvider } from './contexts/AppRegistry.context'
 import { AppProvider } from './stores/app.store'
 import { FS } from './lib/filesystem'
 
 const WELCOME_KEY = 'macsimos-welcome-dismissed'
+const SETUP_KEY = 'macsimos-setup-done'
 
 interface AppProps {
   apps: AppDefinition[]
@@ -15,15 +17,21 @@ interface AppProps {
 
 export default function App({ apps }: AppProps) {
   const [bootDone, setBootDone] = useState(false)
+  const [setupDone] = useState(() => localStorage.getItem(SETUP_KEY) === 'true')
 
   useEffect(() => {
     FS.init().then(() => setBootDone(true)).catch(() => setBootDone(true))
   }, [])
 
+  const handleSetupComplete = () => {
+    localStorage.setItem(SETUP_KEY, 'true')
+  }
+
   return (
     <AppProvider>
       <AppRegistryProvider value={{ apps }}>
         {!bootDone && <BootScreen onComplete={() => setBootDone(true)} />}
+        {bootDone && !setupDone && <SetupWizard apps={apps} onComplete={handleSetupComplete} />}
         {bootDone && <Desktop welcomeKey={WELCOME_KEY} />}
         <KeyboardShortcuts />
         <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden="true">
