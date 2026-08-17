@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import { useAppRegistry } from '../contexts/AppRegistry.context'
 import { useApp } from '../stores/app.store'
 import MenuBar from './MenuBar'
@@ -19,6 +19,7 @@ export default function Desktop({ welcomeKey, apps }: DesktopProps) {
   const registry = useAppRegistry()
   const _apps = apps ?? registry.apps
   const { dispatch } = useApp()
+  const [setupDone] = useState(() => localStorage.getItem('macsimos-setup-done') === 'true')
 
   const dockApps = useMemo(() => _apps, [_apps])
 
@@ -44,7 +45,7 @@ export default function Desktop({ welcomeKey, apps }: DesktopProps) {
       <WindowManager />
       <Dock apps={dockApps} />
       <Spotlight apps={_apps} />
-      <SetupWizard apps={_apps} onComplete={() => {}} />
+      {!setupDone && <SetupWizard apps={_apps} onComplete={() => {}} />}
     </div>
   )
 }

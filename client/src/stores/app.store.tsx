@@ -48,12 +48,13 @@ function reducer(state: State, action: Action): State {
       const remaining = state.windows.filter((w: WindowState) => w.id !== action.id)
       const wasActiveApp = state.menuBarActiveApp
       const activeAppWindows = remaining.filter((w: WindowState) => w.appId === wasActiveApp && !w.isMinimized)
+      const closedWin = state.windows.find((w: WindowState) => w.id === action.id)
       return {
         ...state,
         windows: remaining,
         activeWindowId: state.activeWindowId === action.id ? (remaining.find((w: WindowState) => w.id !== action.id)?.id ?? null) : state.activeWindowId,
-        menuBarActiveApp: (state.activeWindowId === action.id || !activeAppWindows.length) && remaining.length > 0
-          ? remaining[remaining.length - 1].appId
+        menuBarActiveApp: state.activeWindowId === action.id
+          ? (activeAppWindows.length > 0 ? wasActiveApp : (remaining.find((w: WindowState) => !w.isMinimized) || closedWin)?.appId ?? state.menuBarActiveApp)
           : state.menuBarActiveApp,
       }
     }
